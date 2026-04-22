@@ -1,0 +1,18 @@
+{
+    "Lua.diagnostics.globals": [
+        "util",
+        "ic",
+        "ss",
+        "ui",
+        "yield",
+        "screens",
+        "sleep",
+        "hash",
+        "IC",
+        "serialize",
+        "deserialize",
+        "mem_write",
+        "mem_read"
+    ],
+    "claudeCodeChat.permissions.yoloMode": false
+}
