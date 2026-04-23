@@ -5,7 +5,7 @@ LST = ic.enums.LogicSlotType
 -- import de la librairie
 ----------------------------
 
-local system = require("system_lib")
+local system = require("system")
 
 ----------------------------
 -- Définition des donnés

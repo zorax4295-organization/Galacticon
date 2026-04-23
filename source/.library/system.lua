@@ -1,4 +1,4 @@
---@module system_lib
+--@module system
 
 local system = {}
 system.log={}
