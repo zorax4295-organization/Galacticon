@@ -39,14 +39,11 @@ function deserialize(blob)
 	local ok, data = pcall(util.json.decode, blob)
 	if ok and type(data) == "table" then
 		currentRequest = data.currentRequest
-		if currentRequest ~= nil and currentRequest.channel ~= nil then
-			currentRequest.channel = math.tointeger(currentRequest.channel) or math.floor(currentRequest.channel)
-		end
-		currentState = math.tointeger(data.currentState) or STATE.HALTED
+		currentState = data.currentState or STATE.HALTED
 		missingDevices = data.missingDevices or {}
 		lastEvent = data.lastEvent or "RECOVERY"
-		maintenance = math.tointeger(data.maintenance) or 0
-		print(string.format("[SERVER] deserialize: state=%s lastEvent=%s", tostring(currentState), lastEvent))
+		maintenance = data.maintenance or 0
+		print(string.format("[SERVER] deserialize: state=%s lastEvent=%s", currentState, lastEvent))
 	else
 		print("[SERVER] deserialize: failed to decode blob")
 	end
@@ -96,7 +93,7 @@ local function safetyShutdown()
 			ic.write_id(valve, LT.Setting, 1)
 		end
 	end
-	local furnace = ic.find("Furnace")
+	furnace = ic.find("Furnace")
 	if furnace ~= nil then
 		ic.write_id(furnace, LT.On, 0)
 		ic.write_id(furnace, LT.SettingInput, 0)
@@ -122,7 +119,7 @@ local function initDevices()
 			ic.write_id(valve, LT.Setting, 0)
 		end
 	end
-	local furnace = ic.find("Furnace")
+	furnace = ic.find("Furnace")
 	if furnace ~= nil then
 		ic.write_id(furnace, LT.On, 1)
 		ic.write_id(furnace, LT.SettingInput, 0)
@@ -190,7 +187,7 @@ local states = {
 				local missingDevicesList = ""
 				for _, value in ipairs(missingDevices) do
 					missingDevicesList = missingDevicesList == "" and value
-						or string.format("%s, %s", missingDevicesList, value)
+							or string.format("%s, %s", missingDevicesList, value)
 				end
 				return STATE.HALTED, string.format("Devices are missing: %s", missingDevicesList)
 			end
@@ -198,14 +195,15 @@ local states = {
 				return STATE.MAINTENANCE, "Enter maintenance mode"
 			end
 			if currentRequest ~= nil then
-				print(string.format("[SERVER] IDLE: got request channel=%d, totalOres=%s", math.floor(currentRequest.channel), tostring(currentRequest.totalOres)))
+				print(string.format("[SERVER] IDLE: got request channel=%d, totalOres=%s", currentRequest.channel,
+					tostring(currentRequest.totalOres)))
 				local listOfMaterials = ""
 				for key, value in pairs(currentRequest.ores) do
-					listOfMaterials = listOfMaterials == "" and string.format("%d %s", math.floor(value), key)
-						or string.format(", %d %s", math.floor(value), key)
+					listOfMaterials = listOfMaterials == "" and string.format("%d %s", value, key)
+							or string.format("%s, %d %s", listOfMaterials, value, key)
 				end
 				return STATE.DELIVERING_MATERIALS,
-					string.format("Delivering materials for request %d: %s", math.floor(currentRequest.channel), listOfMaterials)
+						string.format("Delivering materials for request %d: %s", currentRequest.channel, listOfMaterials)
 			end
 			sleep(4)
 		end,
@@ -220,7 +218,8 @@ local states = {
 				local valve = ic.find(foundry.getSiloValveName(key))
 				if valve ~= nil then
 					local setting = value / 50
-					print(string.format("[SERVER] DELIVERING: opening valve %s setting=%.2f (qty=%d)", key, setting, math.floor(value)))
+					print(string.format("[SERVER] DELIVERING: opening valve %s setting=%.2f (qty=%d)", key, setting,
+						value))
 					ic.write_id(valve, LT.Setting, setting)
 					ic.write_id(valve, LT.Open, 1)
 				else
@@ -253,12 +252,14 @@ local states = {
 	},
 	[STATE.MELTING_MATERIALS] = {
 		enter = function()
-			print(string.format("[SERVER] ENTERING STATE MELTING_MATERIALS (waiting for reagents=%s)", tostring(currentRequest.totalOres)))
+			print(string.format("[SERVER] ENTERING STATE MELTING_MATERIALS (waiting for reagents=%s)",
+				tostring(currentRequest.totalOres)))
 		end,
 		tick = function(currentRequest)
 			-- TODO: Handle Furnace temp and pressure
+			print('Furnace: ', furnace)
 			local reagents = ic.read_id(furnace, LT.Reagents)
-			print(string.format("[SERVER] MELTING tick: reagents=%.1f expected=%.1f", reagents, currentRequest.totalOres))
+			print(string.format("[SERVER] MELTING tick: reagents=%d expected=%d", reagents, currentRequest.totalOres))
 			if reagents == currentRequest.totalOres then
 				print("[SERVER] MELTING: reagents match totalOres, transitioning to CREATING_INGOT")
 				return STATE.CREATING_INGOT, "All ores in furnace. Waiting for good temp and pressure"
@@ -276,14 +277,16 @@ local states = {
 		end,
 		tick = function(currentRequest)
 			-- TODO: Handle Furnace temp and pressure
-			local reagents   = ic.read_id(furnace, LT.Reagents)
-			local recipeHash = ic.read_id(furnace, LT.RecipeHash)
+			local reagents    = ic.read_id(furnace, LT.Reagents)
+			local recipeHash  = ic.read_id(furnace, LT.RecipeHash)
 			local furnaceOpen = ic.read_id(furnace, LT.Open)
-			print(string.format("[SERVER] CREATING tick: reagents=%.1f recipeHash=%s (expected=%s) open=%s",
-				reagents, tostring(recipeHash), tostring(currentRequest.recipeHash), tostring(furnaceOpen)))
+			print(string.format("[SERVER] CREATING tick: reagents=%d recipeHash=%s (expected=%s) open=%d",
+				reagents, tostring(recipeHash), tostring(currentRequest.recipeHash), furnaceOpen))
 			if reagents == 0 then
 				print("[SERVER] CREATING: reagents=0, all ingots delivered")
-				ic.write_id(furnace, LT.Open, 0)
+				if furnaceOpen ~= 0 then
+					ic.write_id(furnace, LT.Open, 0)
+				end
 				return STATE.REQUEST_COMPLETE, "All ingots delivered"
 			end
 			if recipeHash == currentRequest.recipeHash and reagents == currentRequest.totalOres then
@@ -297,7 +300,9 @@ local states = {
 					print(string.format("[SERVER] CREATING: reagents mismatch (got %.1f want %.1f), keeping closed",
 						reagents, currentRequest.totalOres))
 				end
-				ic.write_id(furnace, LT.Open, 0)
+				if furnaceOpen ~= 0 then
+					ic.write_id(furnace, LT.Open, 0)
+				end
 			end
 			sleep(2)
 		end,
@@ -325,7 +330,7 @@ transition = function(newState, reason)
 	if s and s.exit then s.exit() end
 	lastEvent = reason or newState
 	currentState = newState
-	print(string.format("[SERVER] TRANSITION → state=%d  reason=%s", newState, lastEvent))
+	print(string.format("[SERVER] TRANSITION → state=%s  reason=%s", newState, lastEvent))
 	s = states[currentState]
 	if s and s.enter then s.enter() end
 	ic.net.publish("foundry/state", { state = currentState })
@@ -350,7 +355,7 @@ end
 ----------------
 
 ic.net.register("get_status", function(payload, fromId, fromName)
-	print(string.format("[SERVER] get_status request from %s → returning state=%d", tostring(fromName), currentState))
+	print(string.format("[SERVER] get_status request from %s → returning state=%s", tostring(fromName), currentState))
 	return currentState
 end)
 
@@ -368,7 +373,7 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 		tostring(fromName), tostring(payload and payload.ingot), tostring(payload and payload.quantity)))
 
 	if currentState ~= STATE.IDLE then
-		print(string.format("[SERVER] request_ingot: REJECTED — not IDLE (state=%d)", currentState))
+		print(string.format("[SERVER] request_ingot: REJECTED — not IDLE (state=%s)", currentState))
 		return { code = 500, message = "Foundry not ready" }
 	end
 
@@ -383,9 +388,10 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 	end
 
 	local recipe = foundry.INGOTS_RECIPES[payload.ingot]
-	local quantity = math.tointeger(payload.quantity) or math.floor(payload.quantity)
+	local quantity = payload.quantity
 	if math.fmod(quantity, recipe.orderQty) > 0 then
-		print(string.format("[SERVER] request_ingot: REJECTED — qty %d not multiple of orderQty %d", quantity, recipe.orderQty))
+		print(string.format("[SERVER] request_ingot: REJECTED — qty %d not multiple of orderQty %d", quantity,
+			recipe.orderQty))
 		return {
 			code = 500,
 			message = string.format("%s must be order by multiple of %d ", payload.ingot, recipe.orderQty),
@@ -394,10 +400,11 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 
 	local neededOres = {}
 	local totalOres = 0
-	print(string.format("[SERVER] request_ingot: computing neededOres for %d x %s", quantity, payload.ingot))
+	print(string.format("[SERVER] request_ingot: computing neededOres for %d x %s", quantity,
+		payload.ingot))
 	for key, value in pairs(recipe.ores) do
 		neededOres[key] = math.floor(value * quantity)
-		totalOres = totalOres + neededOres[key]
+		totalOres = math.floor(totalOres + neededOres[key])
 		print(string.format("[SERVER]   ore=%s ratio=%.2f needed=%d", key, value, neededOres[key]))
 	end
 	print(string.format("[SERVER]   totalOres=%.1f", totalOres))
@@ -410,7 +417,7 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 			return { code = 500, message = "Silo for " .. key .. " is Missing" }
 		end
 		local available = ic.read_id(silo, LT.Quantity) * 50
-		print(string.format("[SERVER]   silo %s: available=%.1f needed=%.1f", key, available, value))
+		print(string.format("[SERVER]   silo %s: available=%d needed=%d", key, available, value))
 		if available < value then
 			missingOres[key] = value - available
 			print(string.format("[SERVER]   => INSUFFICIENT: missing %.1f %s", missingOres[key], key))
@@ -420,13 +427,13 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 	if next(missingOres) ~= nil then
 		local missingOresList = "Missing"
 		for key, value in pairs(missingOres) do
-			missingOresList = string.format("%s %d %s", missingOresList, math.floor(value), key)
+			missingOresList = string.format("%s %d %s", missingOresList, value, key)
 		end
 		print(string.format("[SERVER] request_ingot: REJECTED — %s", missingOresList))
 		return { code = 500, message = missingOresList }
 	end
 
-	local channel = math.random(1, 100000)
+	local channel = math.floor(math.random(1, 100000))
 	local recipeHash = hash("Item" .. payload.ingot)
 	currentRequest = {
 		ores = neededOres,
@@ -434,8 +441,7 @@ ic.net.register("request_ingot", function(payload, fromId, fromName)
 		recipeHash = recipeHash,
 		totalOres = totalOres,
 	}
-	print(string.format("[SERVER] request_ingot: ACCEPTED channel=%d recipeHash=%s totalOres=%.1f",
-		channel, tostring(recipeHash), totalOres))
+	print("[SERVER] request_ingot: ACCEPTED ")
 	return { code = 200, message = channel }
 end)
 

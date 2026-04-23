@@ -17,19 +17,19 @@ function foundry_lib.getSiloValveName(ore)
 end
 
 foundry_lib.STATE = {
-	HALTED = 1,
-	MAINTENANCE = 2,
-	IDLE = 3,
-	DELIVERING_MATERIALS = 4,
-	MELTING_MATERIALS = 5,
-	CREATING_INGOT = 6,
-	REQUEST_COMPLETE = 7,
+	HALTED = "HALTED",
+	MAINTENANCE = "MAINTENANCE",
+	IDLE = "IDLE",
+	DELIVERING_MATERIALS = "DELIVERING_MATERIALS",
+	MELTING_MATERIALS = "MELTING_MATERIALS",
+	CREATING_INGOT = "CREATING_INGOT",
+	REQUEST_COMPLETE = "REQUEST_COMPLETE",
 }
 
 foundry_lib.INGOT_CATEGORIES = {
-	BASIC = 1,
-	ALLOY = 2,
-	SUPER_ALLOY = 3,
+	BASIC = "BASIC",
+	ALLOY = "ALLOY",
+	SUPER_ALLOY = "SUPER_ALLOY",
 }
 
 -- Ratios: ores = { [ore] = ratio } — ratios are per-unit, quantities are multiples of orderQty

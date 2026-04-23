@@ -10,7 +10,6 @@ ss.ui.activate("main")
 local W = surface:size().w
 local H = surface:size().h
 
-print(string.format("[SCREEN] init: surface size W=%d H=%d", W, H))
 
 -------------------------------
 -- INGOT LIST (declaration order)
@@ -668,15 +667,12 @@ end
 -------------------------------
 -- INIT + TICK
 -------------------------------
-
+print("[SCREEN] subscribing to foundry/state and fetching initial status...")
 ic.net.subscribe("foundry/state", function(topic, payload, fromId, fromName, retained)
-	print(string.format("[SCREEN] foundry/state received: state=%s from=%s retained=%s",
-		tostring(payload and payload.state), tostring(fromName), tostring(retained)))
-	if payload == nil or payload.state == nil then
-		print("[SCREEN] foundry/state: payload missing or has no state field, ignoring")
-		return
-	end
-	serverState = math.tointeger(payload.state) or payload.state
+	serverState = payload.state
+	print(string.format("[SCREEN] foundry/state received: state=%s from=%s",
+		serverState, fromName))
+
 	if activeTab ~= "ingots" then return end
 	if mode == "modal" then
 		print("[SCREEN] foundry/state: closing modal due to state change")
@@ -685,13 +681,13 @@ ic.net.subscribe("foundry/state", function(topic, payload, fromId, fromName, ret
 	buildIngotGridUI()
 end)
 
-print("[SCREEN] subscribing to foundry/state and fetching initial status...")
+
 ic.net.request("IC Housing-ServerFoundry", "get_status", nil, function(ok, payload, err)
-	print(string.format("[SCREEN] get_status callback: ok=%s payload=%s err=%s",
-		tostring(ok), tostring(payload), tostring(err)))
-	if ok and payload ~= nil then
-		serverState = math.tointeger(payload) or payload
-		print(string.format("[SCREEN] initial serverState set to %s", tostring(serverState)))
+	print(string.format("[SCREEN] get_status callback: %s", util.json.encode({ ok = ok, payload = payload, error = err })))
+
+	if ok then
+		serverState = payload
+		print(string.format("[SCREEN] initial serverState set to %s", serverState))
 	else
 		print("[SCREEN] get_status failed, serverState remains nil")
 	end
