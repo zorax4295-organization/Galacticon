@@ -33,9 +33,11 @@ local currentState = states.idle
 --Définition des fonction
 ----------------------------
 
-local function moveToTray(stationIndex)
+local function moveToTray(stationIndex, ignoreIdle)
     system.safe.write(larreDevice, LT.Setting, stationIndex, "Larre hydroponic")
-    while system.safe.read(larreDevice, LT.Idle, "Larre hydroponic")==0 or system.safe.read(larreDevice, LT.Error, "Larre hydroponic")==1 do yield() end
+    if ignoreIdle~=true then
+        while system.safe.read(larreDevice, LT.Idle, "Larre hydroponic")==0 or system.safe.read(larreDevice, LT.Error, "Larre hydroponic")==1 do yield() end
+    end
 end
 local function unloadHarvest(state)
     currentState = state or states.unloadHarvest
@@ -108,7 +110,7 @@ local function larreHarvestAndReplantZone(hydroponicDevicesSeeding)
             end
         end
     end
-    moveToTray(0)
+    moveToTray(0, true)
     currentState = states.idle
 end
 
