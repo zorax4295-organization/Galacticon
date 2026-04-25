@@ -14,7 +14,12 @@ local function createScreen(name)
         end,
     }
 end
+
+------------------------
 -- Création des écran
+------------------------
+
+---Liste toute les table et elements associer 
 local ui = {
     accueil = createScreen("accueil"),
     setting = createScreen("setting"),
@@ -25,4 +30,40 @@ local ui = {
 local w = ui.accueil.surface:size().w
 local h = ui.accueil.surface:size().h
 
+ui.accueil.clear()
+
+--Liste tout les elements créer dans chaque écran
+local elements = {
+    accueil = {
+        background = ui.accueil.surface:element({
+            id = "background", type = "panel",
+            rect = { unit = "px", x = 0, y = 0, w = w, h = h },
+            style = { bg = "#FFFFFF" }
+        }),
+        title = { 
+            panel = ui.accueil.surface:element({
+                id = "bg", type = "panel",
+                rect = { unit = "px", x = 0, y = 0, w = 400, h = 50 },
+                style = { bg = "#0F172A" }
+            }),
+            title = ui.accueil.surface:element({
+                id = "title", type = "label",
+                rect = { unit = "px", x = 0, y = h/2-50, w = w, h = 50 },
+                props = { text = "Station automatisée de récolte et de stockage" },
+                style = { font_size = 50, color = "#000000", align = "center" }
+            }),
+        button = ui.accueil.surface:element({
+                id = "start", type = "button",
+                rect = { unit = "px", x = 10, y = 10, w = 120, h = 36 },
+                props = { text = "Commencer" },
+                style = { bg = "#FF000", text = "#000000", font_size = 20 },
+                on_click = function(playerName)
+                    print("Clicked by " .. playerName)
+                end
+            }),
+        },
+    },
+}
+
 ui.accueil.set()
+
