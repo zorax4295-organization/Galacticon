@@ -3,9 +3,6 @@
 local system = {}
 system.log={}
 system.safe={}
----@class LogicType --Permet de créer un type de donnés (evite l'erreur sur LogicType)
----@class Id
----@class LogicSlotType
 
 
 ----------------------------
