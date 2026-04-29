@@ -26,6 +26,19 @@ function system.log.level(value)
     end
 end
 
+-- Renvoie le nom de la librairie formaté
+---@param name string
+---@return string
+function system.log.moduleName(name)
+    if type(name) ~= "string" then
+        return ""
+    end
+
+    return "<color=#008000><</color>Module : <color=#FFFF00>" 
+        .. name .. 
+        "<color=#008000>></color>"
+end
+
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
 ---@param device integer
 ---@param logicType LogicType
