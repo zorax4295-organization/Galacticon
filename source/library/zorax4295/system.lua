@@ -34,9 +34,7 @@ function system.log.moduleName(name)
         return ""
     end
 
-    return "<color=#008000><</color>Module : <color=#FFFF00>" 
-        .. name .. 
-        "<color=#008000>></color>"
+    return "<color=#008000><</color>Module : <color=#FFFF00>" .. name .. "<color=#008000>></color>"
 end
 
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
