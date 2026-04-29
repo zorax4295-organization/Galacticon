@@ -25,10 +25,10 @@ function unitConvert.pressure(value, from, to)
 
     -- Gestion erreur
     if not toPa[from] then
-        error(system.log.time().."h "..system.logLevel("fatal").."Unité source invalide: " .. tostring(from))
+        print(system.log.time().."h "..system.log.level("fatal")..system.log.moduleName("unitConvert").."Unité source invalide: " .. tostring(from))
     end
     if not toPa[to] then
-        error(system.log.time().."h "..system.logLevel("fatal").."Unité cible invalide: " .. tostring(to))
+        print(system.log.time().."h "..system.log.level("fatal")..system.log.moduleName("unitConvert").."Unité cible invalide: " .. tostring(to))
     end
 
     -- Conversion

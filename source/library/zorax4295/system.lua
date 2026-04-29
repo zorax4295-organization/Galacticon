@@ -49,7 +49,7 @@ function system.safe.write(device, logicType, value, nameDevice)
         ic.write(device, logicType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
         --Faire crash le programme ici
     end
 end
@@ -64,7 +64,7 @@ function system.safe.writeId(deviceId, logicType, value, nameDevice)
         ic.write_id(deviceId, logicType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
         --Faire crash le programme ici
     end
 end
@@ -80,7 +80,7 @@ function system.safe.writeSlot(device, slot, slotType, value, nameDevice)
         ic.write_slot(device, slot, slotType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
         --Faire crash le programme ici
     end
 end
@@ -96,7 +96,7 @@ function system.safe.writeSlotId(deviceId, slot, slotType, value, nameDevice)
         ic.write_slot_id(deviceId, slot, slotType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
         --Faire crash le programme ici
     end
 end
@@ -109,7 +109,7 @@ end
 function system.safe.read(device, logicType, nameDevice)
     local value = ic.read(device, logicType)
     if value==nil then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
         --Faire crash le programme ici
     else
         return value
@@ -124,7 +124,7 @@ end
 function system.safe.readId(deviceId, logicType, nameDevice)
     local value = ic.read(deviceId, logicType)
     if value==nil then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
         --Faire crash le programme ici
     else
         return value
@@ -140,7 +140,7 @@ end
 function system.safe.readSlot(device, slot, slotType, nameDevice)
     local value = ic.read_slot(device, slot, slotType)
     if value==nil then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
         --Faire crash le programme ici
     else
         return value
@@ -156,7 +156,7 @@ end
 function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
     local value = ic.read_slot_id(deviceId, slot, slotType)
     if value==nil then
-        print(system.log.time().."h "..system.logLevel("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
         --Faire crash le programme ici
     else
         return value
