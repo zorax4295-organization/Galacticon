@@ -12,7 +12,6 @@ local unitConvert = {}
 --Convertion de pression
 ---@overload fun(value: number, from: "Pa"|"kPa"|"MPa", to: "Pa"|"kPa"|"MPa"): number
 function unitConvert.pressure(value, from, to)
-    -- Facteurs vers Pascal (unité de base)
     local toPa = {
         Pa  = 1,
         kPa = 1e3,
@@ -32,3 +31,4 @@ function unitConvert.pressure(value, from, to)
     local valueInPa = value * toPa[from]
     return valueInPa / toPa[to]
 end
+return unitConvert
