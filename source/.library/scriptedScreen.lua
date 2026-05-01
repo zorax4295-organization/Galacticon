@@ -91,3 +91,5 @@ function scriptedScreen.element.createRect(parent, id, x, y, w, h, color, thickn
 
     return rect
 end
+
+return scriptedScreen
