@@ -1,6 +1,7 @@
 --@module scriptedScreen
 
-local scriptedScreen = {element = {}}
+local scriptedScreen = {}
+scriptedScreen.element = {}
 
 -- Permet la création d'un carré ou d'un rectangle
 ---@param id string
