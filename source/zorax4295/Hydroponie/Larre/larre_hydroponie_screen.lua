@@ -1,3 +1,14 @@
+----------------------------------Explication du programme--------------------------------------
+-- Se système est conçus pour s'afficher sur cette écran : Computer (Big Screen Wall Mounted)
+-- La taille de l'écran est de : w=862px | h=584px
+-- Cette écran à été dimmensionné avec : https://www.figma.com
+---------------------------------------Objectif-------------------------------------------------
+-- Supperviser la position et les état du larre
+-- Commander le système en manuel
+-- Superviser les stock de graine et de fruit dans les frigo
+-- Gerer et parametre l'eclairage
+------------------------------------------------------------------------------------------------
+
 -- Déffinition des parametre de chaque écran
 local function createScreen(name)
     local surface = ss.ui.surface(name)
@@ -29,6 +40,7 @@ local ui = {
 -- Déffinition de la taille de l'écran physique
 local w = ui.accueil.surface:size().w
 local h = ui.accueil.surface:size().h
+print("w=",w," | h=",h)
 
 ui.accueil.clear()
 
