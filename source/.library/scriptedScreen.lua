@@ -11,6 +11,7 @@ scriptedScreen.element = {}
 ---@param h number
 ---@param color string
 ---@param thickness number
+---@return nil
 function scriptedScreen.element.createRect(parent, id, x, y, w, h, color, thickness)
     thickness = thickness or 2
     color = color or "#000000"
