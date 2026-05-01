@@ -66,17 +66,17 @@ local elements = {
                 props = { text = "Station automatisée de récolte et de stockage" },
                 style = { font_size = 50, color = "#000000", align = "center" }
             }),
-        button_commencer = ui.accueil.surface:element({
-                id = "button_commencer_accueil", type = "button",
-                rect = { unit = "px", x = 308, y = 254, w = 245, h = 75 },
-                props = { text = "Commencer" },
-                style = { bg = "#EDEDED", text = "#000000", font_size = 20 },
-                on_click = function()
-                    ui.accueil.clear()
-                    ui.auto.set()
-                end
-            }),
         },
+        button_commencer = ui.accueil.surface:element({
+            id = "button_commencer_accueil", type = "button",
+            rect = { unit = "px", x = 308, y = 254, w = 245, h = 75 },
+            props = { text = "Commencer" },
+            style = { bg = "#EDEDED", text = "#000000", font_size = 20 },
+            on_click = function()
+                ui.accueil.clear()
+                ui.auto.set()
+            end
+        }),
     },
     auto = {
         background = ui.auto.surface:element({
@@ -95,8 +95,31 @@ local elements = {
             props = { x1 = "0", y1 = "64", x2 = "862", y2 = "64" },
             style = { color = "#000000", thickness = "3" },
         }),
+        line_sep_commande_supervision = ui.auto.surface:element({
+            id = "line_sep_commande_supervision_auto", type = "line",
+            props = { x1 = "540", y1 = "64", x2 = "540", y2 = "640" },
+            style = { color = "#000000", thickness = "3" },
+        }),
+        menu = {
+            home = {
+                button = ui.auto.surface:element({
+                    id = "button_home_auto", type = "button",
+                    rect = { unit = "px", x = 0, y = 534, w = 50, h = 50 },
+                    props = { text = "Commencer" },
+                    style = { bg = "#EDEDED", text = "#000000", font_size = 0 },
+                    on_click = function()
+                        ui.auto.clear()
+                        ui.accueil.set()
+                    end
+                }),
+                image = ui.auto.surface:element({
+                    id = "image_button_home_auto", type = "image",
+                    rect = { unit = "px", x = 0, y = 534, w = 50, h = 50 },
+                    props = { url = ""},
+                }),
+            },
+        },
     },
 }
 
 ui.accueil.set()
-
