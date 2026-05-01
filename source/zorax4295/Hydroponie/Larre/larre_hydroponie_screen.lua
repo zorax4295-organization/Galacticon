@@ -9,6 +9,7 @@
 -- Gerer et parametre l'eclairage
 ------------------------------------------------------------------------------------------------
 
+
 -- Déffinition des parametre de chaque écran
 local function createScreen(name)
     local surface = ss.ui.surface(name)
@@ -48,27 +49,27 @@ ui.accueil.clear()
 local elements = {
     accueil = {
         background = ui.accueil.surface:element({
-            id = "background", type = "panel",
+            id = "background", type = "image",
             rect = { unit = "px", x = 0, y = 0, w = w, h = h },
-            style = { bg = "#FFFFFF" }
+            props = {url = ""},
         }),
         title = { 
             panel = ui.accueil.surface:element({
                 id = "bg", type = "panel",
-                rect = { unit = "px", x = 0, y = 0, w = 400, h = 50 },
-                style = { bg = "#0F172A" }
+                rect = { unit = "px", x = 144, y = 368, w = 573, h = 130 },
+                style = { bg = "#FFFFFF" }
             }),
-            title = ui.accueil.surface:element({
+            label = ui.accueil.surface:element({
                 id = "title", type = "label",
-                rect = { unit = "px", x = 0, y = h/2-50, w = w, h = 50 },
+                rect = { unit = "px", x = 144, y = 368, w = 573, h = 130 },
                 props = { text = "Station automatisée de récolte et de stockage" },
                 style = { font_size = 50, color = "#000000", align = "center" }
             }),
         button = ui.accueil.surface:element({
                 id = "start", type = "button",
-                rect = { unit = "px", x = 10, y = 10, w = 120, h = 36 },
+                rect = { unit = "px", x = 308, y = 254, w = 245, h = 75 },
                 props = { text = "Commencer" },
-                style = { bg = "#FF000", text = "#000000", font_size = 20 },
+                style = { bg = "#EDEDED", text = "#000000", font_size = 20 },
                 on_click = function(playerName)
                     print("Clicked by " .. playerName)
                 end
