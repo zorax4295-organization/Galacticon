@@ -1,0 +1,26 @@
+-- Déffinition des parametre de chaque écran
+local function createScreen(name)
+    local surface = ss.ui.surface(name)
+    return {
+        -- Rend accessible la surface pour utilisation ulterieur
+        surface=surface,
+        -- Affiche l'écran
+        set = function()
+            ss.ui.activate(name)
+        end,
+        -- Retire tout les élément afficher a l'écran
+        clear = function ()
+            surface:clear()            
+        end,
+    }
+end
+-- Création des écran
+local ui = {
+    main = createScreen("main"),
+    setting = createScreen("setting"),
+    supervision = createScreen("supervision"),
+}
+
+-- Déffinition de la taille de l'écran physique
+local w = ui.main.surface:size().w
+local h = ui.main.surface:size().h
