@@ -7,7 +7,12 @@
 -- Commander le système en manuel
 -- Superviser les stock de graine et de fruit dans les frigo
 -- Gerer et parametre l'eclairage
-------------------------------------------------------------------------------------------------
+------------------------------------Couleur voyant---------------------------------------------
+-- Voyant d'arrêt {éteint = 5A0000, allumé = FF0000}
+-- Voyant défaut {éteint = B36200, allumé = FF8C00}
+-- Voyant marche {éteint = 009900, allumé = 00FF00}
+-----------------------------------------------------------------------------------------------
+
 
 ----------------------------
 -- import de la librairie
