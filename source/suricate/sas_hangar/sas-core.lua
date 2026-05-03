@@ -28,11 +28,13 @@ local LT = ic.enums.LogicType
 local LBM = ic.enums.LogicBatchMethod
 
 local sensor = 0
+local sensorextern = 1
+local sensorintern = 2
 local flashLight = hash("StructureFlashingLight")
 local hangarDoor = hash("StructureMediumHangerDoor")
 local hangarDoorInterName = ""
 local hangarDoorExterName = ""
-local poweredVent = hash("StructurePoweredVent")
+local poweredVentH = hash("StructurePoweredVent")
 local poweredVentInterName = ""
 local poweredVentExterName = ""
 local light = hash("StructureWallLight")
@@ -76,10 +78,17 @@ while true do
             -- faire crash le programme
         end
         ic.batch_write(flashLight, LT.On, 1)
-        ic.batch_write_name(poweredVent, poweredVentInterName, LT.Mode, 1) -- Dépressuriser
-        ic.batch_write_name(poweredVent, poweredVentInterName, LT.On, 1)
+        ic.batch_write_name(poweredVentH, poweredVentInterName, LT.Mode, 1) -- Dépressuriser
+        ic.batch_write_name(poweredVentH, poweredVentInterName, LT.On, 1)
         while system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= 0 do yield() end -- Tant que la pression !=0 alors je patiente
-        ic.batch_write_name(poweredVent, poweredVentInterName, LT.On, 0)
+        ic.batch_write_name(poweredVentH, poweredVentInterName, LT.On, 0)
+
+        currentState = state.interExterPresurisation
+        ic.batch_write_name(poweredVentH, poweredVentExterName, LT.Mode, 0) --Préssuriser
+        while system.safe(sensor, LT.Pressure, "Gas Sensor") ~=system.safe(sensorextern, LT.Pressure, "Gas Sensor Extern") do yield() end
+        ic.batch_write_name(hangarDoor, hangarDoorExterName, LT.Open, 1)
+         ic.batch_write(flashLight, LT.On, 0)
+        
     end
     yield()
 end
