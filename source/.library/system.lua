@@ -191,6 +191,7 @@ function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
     end
 end
 
+--Renvoie un string colorier
 ---@param color "Blue" | "Red" | "Orange" | "Yellow" | "Green" | "Gray" | "White" | "Black" | "Brown" | "Pink" | "Purple" | "Khaki"
 ---@param message string
 ---@return string
