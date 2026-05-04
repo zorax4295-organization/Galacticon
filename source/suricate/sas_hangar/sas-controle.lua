@@ -25,6 +25,7 @@ local LBM = ic.enums.LogicBatchMethod
 
 local housingAccess = 0
 local weatherStation = 1
+local housingCoreId = ic.find("IC Housing core")
 local bpAcquiterId = ic.find("Acquiter SOS")
 local switchMaintenanceId = ic.find("Maintenance")
 local bpSosId = ic.find("SOS")
@@ -73,7 +74,13 @@ while true do
     end
 
     if SwitchMaintenanceState == 1 then
-        
+        ic.net.send(housingCoreId, "SwitchMaintenanceState", true)
+    elseif bpSosState == 1 then
+        ic.net.send(housingCoreId, "bpSosState", true)
+    elseif bpAcquiterstate == 1 then
+        ic.net.send(bpAcquiterId, "bpAcquiterstate", true)
+    elseif dcy == 1 then
+        ic.net.send(housingCoreId, "dcy", true)
     end
-
+    ic.net.send(screen, "weather", {actualWeatherMode = actualWeatherMode, nextWeatherEventTime = nextWeatherEventTime})
 end
