@@ -56,14 +56,6 @@ local sensCycle = {
 local currentSensCycle = sensCycle.interExter
 
 
-----------------------
----temporaire
-----------------------
-
-local buttonStartCyleHash = hash("ModularDeviceUtilityButton2x2")
-
-
-
 ----------------------------
 -- Init du système
 ----------------------------
@@ -84,6 +76,7 @@ local function cycleInterExter()
         currentState = state.interExterDepresurisation
         ic.batch_write_name(hangarDoor, hangarDoorInterName, LT.Open, 0)
         ic.batch_write(flashLight, LT.On, 1)
+        yield()
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.Mode, 1) -- Dépressuriser
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 1)
         while system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= 0 do yield() end -- Tant que la pression !=0 alors je patiente
@@ -114,6 +107,7 @@ local function cycleExterInter()
         currentState = state.ExterInterDepresurisation
         ic.batch_write_name(hangarDoor, hangarDoorExterName, LT.Open, 0)
         ic.batch_write(flashLight, LT.On, 1)
+        yield()
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.Mode, 1) -- Dépressuriser
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 1)
         while system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= 0 do yield() end -- Tant que la pression !=0 alors je patiente
@@ -126,7 +120,7 @@ local function cycleExterInter()
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.Mode, 0) -- Pressuriser
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 1)
         while 
-            system.safe.read(sensor, LT.Pressure, "Gas Sensor") <= system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Extern")-0.01 and
+            system.safe.read(sensor, LT.Pressure, "Gas Sensor") <= system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Extern")-0.5 and
             system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Extern") >=10 -- Supérieur a 10kPa
         do
             yield()
@@ -142,8 +136,6 @@ end
 
 
 while true do
-    startCycle = ic.batch_read(buttonStartCyleHash, LT.Activate, LBM.Maximum)
-
     if startCycle==1 then
         if currentSensCycle == sensCycle.interExter then
             cycleInterExter()
