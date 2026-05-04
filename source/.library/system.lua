@@ -6,6 +6,7 @@ system.safe={}
 
 ---@class LogicType
 ---@class LogicSlotType
+---@class PrefabHash
 
 
 ----------------------------
@@ -39,6 +40,11 @@ function system.log.moduleName(name)
 
     return "<color=#008000><</color>Module : <color=#FFFF00>" .. name .. "</color><color=#008000>></color>"
 end
+
+
+
+
+
 
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
 ---@param device integer
@@ -101,6 +107,26 @@ function system.safe.writeSlotId(deviceId, slot, slotType, value, nameDevice)
         --Faire crash le programme ici
     end
 end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param logicType LogicType
+---@param value number
+---@param nameDevice string|nil
+function system.safe.batch_write(hash, logicType, value, nameDevice, methode)
+    ic.batch_write(hash, logicType, value)
+    yield()
+    local actualValue = ic.batch_read(hash, logicType, methode)
+    if actualValue ~= value then
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        --Faire crash le programme ici
+    end
+end
+
+
+
+
 
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
 ---@param device integer
