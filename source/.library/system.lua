@@ -3,6 +3,7 @@
 local system = {}
 system.log={}
 system.safe={}
+system.utils={}
 
 ---@class LogicType
 ---@class LogicSlotType
@@ -188,6 +189,38 @@ function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
     else
         return value
     end
+end
+
+---@param color "Blue" | "Red" | "Orange" | "Yellow" | "Green" | "Gray" | "White" | "Black" | "Brown" | "Pink" | "Purple" | "Khaki"
+---@param message string
+---@return string
+function system.utils.color(color, message)
+    if color=="Blue" then
+        return "<color=#212AA5>" .. message .. "</color>"
+    elseif color == "Red" then
+        return "<color=#E70200>" .. message .. "</color>"
+    elseif color == "Orange" then
+        return "<color=#FF662B>" .. message .. "</color>"
+    elseif color == "Yellow" then
+        return "<color=#FFBC1B>" .. message .. "</color>"
+    elseif color == "Green" then
+        return "<color=#3F9B39>" .. message .. "</color>"
+    elseif color == "Gray" then
+        return "<color=#7B7B7B>" .. message .. "</color>"
+    elseif color == "White" then
+        return "<color=#E7E7E7>" .. message .. "</color>"
+    elseif color == "Black" then
+        return "<color=#080908>" .. message .. "</color>"
+    elseif color == "Brown" then
+        return "<color=#633C2B>" .. message .. "</color>"
+    elseif color == "Pink" then
+        return "<color=#E41C99>" .. message .. "</color>"
+    elseif color == "Purple" then
+        return "<color=#732CA7>" .. message .. "</color>"
+    elseif color == "Khaki" then
+        return "<color=#63633F>" .. message .. "</color>"
+    end
+    return ""
 end
 
 return system -- equivalent a un export en java
