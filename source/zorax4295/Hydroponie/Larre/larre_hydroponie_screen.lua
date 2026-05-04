@@ -228,8 +228,9 @@ local elements = {
                     style = { color = "#000000", thickness = "3" },
                 }),
             },
+            -- Boutton fesant retourner le larre a sa gare
             return_gare = {
-                -- button Retour gare
+                -- button de retour a la gare
                 button = container.auto.commande:element({
                     id = "button_return_gare_auto", type = "button",
                     rect = { unit = "px", x = 80, y = 151, w = 161, h = 37 },
@@ -241,8 +242,9 @@ local elements = {
                 -- Contour du bouton Retour gare
                 rect = scriptedScreen.element.createRect(container.auto.commande, "rect_button_return_gare_auto",container.auto.commande.rect.x+80, container.auto.commande.rect.y+151, 161, 37, "#000000", 2)
             },
+            -- Boutton pour activer le larre
             harverst_and_replant = {
-                -- button Retour gare
+                -- button pour activer le larre
                 button = container.auto.commande:element({
                     id = "button_harverst_and_replant_auto", type = "button",
                     rect = { unit = "px", x = 80, y = 268, w = 161, h = 37 },
@@ -254,22 +256,40 @@ local elements = {
                 -- Contour du bouton Retour gare
                 rect = scriptedScreen.element.createRect(container.auto.commande, "rect_button_harverst_and_replant_auto",container.auto.commande.rect.x+80, container.auto.commande.rect.y+268, 161, 37, "#000000", 2)
             },
+            -- Boutton de déplacement a droite du larre
             move_right = {
-                -- button Retour gare
+                -- button de déplacement du larre a droite
                 button = container.auto.commande:element({
                     id = "button_move_right_auto", type = "button",
                     rect = { unit = "px", x = 198, y = 203, w = 50, h = 50 },
                     props = { text = "" },
-                    style = { bg = "#43A047", text = "#000000", font_size = 20 },
+                    style = { bg = "#00000000", text = "#000000", font_size = 20 },
                     on_click = function()
                     end
                 }),
-                image = ui.auto.surface:element({
+                image = container.auto.commande:element({
                     id = "image_button_move_right_auto", type = "image",
                     rect = { unit = "px", x = 198, y = 203, w = 50, h = 50 },
-                    props = { url = "" },
-                })
-            }
+                    props = { url = "https://github.com/zorax4295-organization/Galacticon/blob/zorax4295/Larre_Hydroponie/source/zorax4295/Hydroponie/Larre/ressource/larre_hydroponie_screen/button_fleche_right.png?raw=true" },
+                }),
+            },
+            -- Boutton de déplacement a gauche du larre
+            move_left = {
+                -- button de déplacement du larre a gauche
+                button = container.auto.commande:element({
+                    id = "button_move_left_auto", type = "button",
+                    rect = { unit = "px", x = 74, y = 203, w = 50, h = 50 },
+                    props = { text = "" },
+                    style = { bg = "#00000000", text = "#000000", font_size = 20 },
+                    on_click = function()
+                    end
+                }),
+                image = container.auto.commande:element({
+                    id = "image_button_move_left_auto", type = "image",
+                    rect = { unit = "px", x = 74, y = 203, w = 50, h = 50 },
+                    props = { url = "https://github.com/zorax4295-organization/Galacticon/blob/zorax4295/Larre_Hydroponie/source/zorax4295/Hydroponie/Larre/ressource/larre_hydroponie_screen/button_fleche_left.png?raw=true" },
+                }),
+            },
         },
     },
 }
