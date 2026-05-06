@@ -9,6 +9,8 @@ system.utils={}
 ---@class LogicSlotType
 ---@class PrefabHash
 ---@class Average
+---@class LogicBatchMethod
+---@class NameHash
 
 
 ----------------------------
@@ -55,7 +57,7 @@ end
 ---@param device integer
 ---@param logicType LogicType
 ---@param value number
----@param nameDevice string|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
 function system.safe.write(device, logicType, value, nameDevice)
     local status, err = pcall(function()
         ic.write(device, logicType, value)
@@ -70,7 +72,7 @@ end
 ---@param deviceId integer
 ---@param logicType LogicType
 ---@param value number
----@param nameDevice string|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
 function system.safe.writeId(deviceId, logicType, value, nameDevice)
     local status, err = pcall(function()
         ic.write_id(deviceId, logicType, value)
@@ -86,7 +88,7 @@ end
 ---@param slot integer
 ---@param slotType LogicSlotType
 ---@param value number
----@param nameDevice string|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
 function system.safe.writeSlot(device, slot, slotType, value, nameDevice)
     local status, err = pcall(function()
         ic.write_slot(device, slot, slotType, value)
@@ -102,7 +104,7 @@ end
 ---@param slot integer
 ---@param slotType LogicSlotType
 ---@param value number
----@param nameDevice string|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
 function system.safe.writeSlotId(deviceId, slot, slotType, value, nameDevice)
     local status, err = pcall(function()
         ic.write_slot_id(deviceId, slot, slotType, value)
@@ -121,8 +123,8 @@ end
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
 ---@param device integer
 ---@param logicType LogicType
----@param nameDevice string|nil
----@return number|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+---@return number
 function system.safe.read(device, logicType, nameDevice)
     local value = ic.read(device, logicType)
     if value==nil then
@@ -136,8 +138,8 @@ end
 --Écriture protéger d'une valeur sur un appareil avec gestion d'erreur
 ---@param deviceId integer
 ---@param logicType LogicType
----@param nameDevice string|nil
----@return number|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+---@return number
 function system.safe.readId(deviceId, logicType, nameDevice)
     local value = ic.read(deviceId, logicType)
     if value==nil then
@@ -152,8 +154,8 @@ end
 ---@param device integer
 ---@param slot integer
 ---@param slotType LogicSlotType
----@param nameDevice string|nil
----@return number|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+---@return number
 function system.safe.readSlot(device, slot, slotType, nameDevice)
     local value = ic.read_slot(device, slot, slotType)
     if value==nil then
@@ -168,8 +170,8 @@ end
 ---@param deviceId integer
 ---@param slot integer
 ---@param slotType LogicSlotType
----@param nameDevice string|nil
----@return number|nil
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+---@return number
 function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
     local value = ic.read_slot_id(deviceId, slot, slotType)
     if value==nil then
@@ -179,7 +181,6 @@ function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
         return value
     end
 end
-
 
 
 
@@ -230,18 +231,141 @@ end
 ---@param hash PrefabHash
 ---@param logicType LogicType
 ---@param value number
----@param nameDevice string|nil
----@param methode Average
-function system.safe.batch_write(hash, logicType, value, nameDevice, methode)
+---@param methode LogicBatchMethod -- definie quelle valeur pour le retour est prise en compte
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_write(hash, logicType, value, methode, nameDevice)
     ic.batch_write(hash, logicType, value)
-    sleep(1)
+    yield()
     local actualValue = ic.batch_read(hash, logicType, methode)
-    print(actualValue)
     if actualValue ~= value then
         print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
         error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     end
 end
 
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur
+---@param hash PrefabHash
+---@param nameHash NameHash
+---@param logicType LogicType
+---@param value number
+---@param methode LogicBatchMethod -- definie quelle valeur pour le retour est prise en compte
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_write_name(hash, nameHash, logicType, value, methode, nameDevice)
+    ic.batch_write_name(hash, nameHash, logicType, value)
+    yield()
+    local actualValue = ic.batch_read_name(hash, nameHash, logicType, methode)
+    if actualValue ~= value then
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    end
+end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur
+---@param hash PrefabHash
+---@param slot integer
+---@param slotType LogicSlotType
+---@param value number
+---@param methode LogicBatchMethod -- definie quelle valeur pour le retour est prise en compte
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_write_slot(hash, slot, slotType, value, methode, nameDevice)
+    ic.batch_write_slot(hash, slot, slotType, value)
+    yield()
+    local actualValue = ic.batch_read_slot(hash, slot, slotType, methode)
+    if actualValue ~= value then
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    end
+end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur
+---@param hash PrefabHash
+---@param nameHash NameHash
+---@param slot integer
+---@param slotType LogicSlotType
+---@param value number
+---@param methode LogicBatchMethod -- definie quelle valeur pour le retour est prise en compte
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_write_slot_name(hash, nameHash, slot, slotType, value, methode, nameDevice)
+    ic.batch_write_slot_name(hash, nameHash, slot, slotType, value)
+    yield()
+    local actualValue = ic.batch_read_slot_name(hash, nameHash, slot, slotType, methode)
+    if actualValue ~= value then
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    end
+end
+
+
+
+
+
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param logicType LogicType
+---@param methode LogicBatchMethod -- definie quelle méthode de lecture
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_read(hash, logicType, methode, nameDevice)
+    local value = ic.batch_read(hash, logicType, methode)
+    if value == nil or value ~= value then -- value ~= value parceque si value = NaN alors la particularité est que tous les nombres sont égaux à eux-mêmes Sauf NaN
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    else
+        return value
+    end
+end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param nameHash NameHash
+---@param logicType LogicType
+---@param methode LogicBatchMethod -- definie quelle méthode de lecture
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_read_name(hash, nameHash, logicType, methode, nameDevice)
+    local value = ic.batch_read_name(hash, nameHash, logicType, methode)
+    if value == nil or value ~= value then -- value ~= value parceque si value = NaN alors la particularité est que tous les nombres sont égaux à eux-mêmes Sauf NaN
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    else
+        return value
+    end
+end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param slot integer
+---@param slotType LogicSlotType
+---@param methode LogicBatchMethod -- definie quelle méthode de lecture
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_read_slot(hash, slot, slotType, methode, nameDevice)
+    local value = ic.batch_read_slot(hash, slot, slotType, methode)
+    if value == nil or value ~= value then -- value ~= value parceque si value = NaN alors la particularité est que tous les nombres sont égaux à eux-mêmes Sauf NaN
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    else
+        return value
+    end
+end
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param nameHash NameHash
+---@param slot integer
+---@param slotType LogicSlotType
+---@param methode LogicBatchMethod -- definie quelle méthode de lecture
+---@param nameDevice string|nil -- nom de l'appareil renvoyer dans les log en cas d'erreur
+function system.safe.batch_read_slot_name(hash, nameHash, slot, slotType, methode, nameDevice)
+    local value = ic.batch_read_slot_name(hash, nameHash, slot, slotType, methode)
+    if value == nil or value ~= value then -- value ~= value parceque si value = NaN alors la particularité est que tous les nombres sont égaux à eux-mêmes Sauf NaN
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    else
+        return value
+    end
+end
 
 return system -- equivalent a un export en java
