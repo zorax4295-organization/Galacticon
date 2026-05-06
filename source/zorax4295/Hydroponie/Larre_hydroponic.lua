@@ -1,5 +1,5 @@
-LT  = ic.enums.LogicType 
-LST = ic.enums.LogicSlotType
+local LT  = ic.enums.LogicType 
+local LST = ic.enums.LogicSlotType
 
 ----------------------------
 -- import de la librairie

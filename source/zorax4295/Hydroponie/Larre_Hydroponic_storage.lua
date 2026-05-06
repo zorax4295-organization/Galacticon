@@ -1,5 +1,5 @@
-LT  = ic.enums.LogicType 
-LST = ic.enums.LogicSlotType
+local LT  = ic.enums.LogicType 
+local LST = ic.enums.LogicSlotType
 
 -- Définition des donnés
 TIME = "day " .. util.days_past()-1 .. " | " .. util.clock_time("HH")

@@ -8,6 +8,7 @@ system.utils={}
 ---@class LogicType
 ---@class LogicSlotType
 ---@class PrefabHash
+---@class Average
 
 
 ----------------------------
@@ -27,7 +28,9 @@ function system.log.level(value)
     elseif value=="warn" then return "[<color=#FFA500>WARN</color>]"
     elseif value=="fatal" then return "[<color=#FF0000>FATAL</color>]"
     elseif value=="debug" then return "[<color=#FFFF00>DEBUG</color>]"
-    else return ""
+    else
+        print(system.log.time().."h "..system.log.level("warn").." : level invalide")
+        return ""
     end
 end
 
@@ -36,6 +39,7 @@ end
 ---@return string
 function system.log.moduleName(name)
     if type(name) ~= "string" then
+        print(system.log.time().."h "..system.log.level("warn").." : Le nom du module n'est pas de type string")
         return ""
     end
 
@@ -53,12 +57,12 @@ end
 ---@param value number
 ---@param nameDevice string|nil
 function system.safe.write(device, logicType, value, nameDevice)
-    local status, error = pcall(function()
+    local status, err = pcall(function()
         ic.write(device, logicType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
-        --Faire crash le programme ici
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(err))
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     end
 end
 
@@ -68,12 +72,12 @@ end
 ---@param value number
 ---@param nameDevice string|nil
 function system.safe.writeId(deviceId, logicType, value, nameDevice)
-    local status, error = pcall(function()
+    local status, err = pcall(function()
         ic.write_id(deviceId, logicType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
-        --Faire crash le programme ici
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(err))
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     end
 end
 
@@ -84,12 +88,12 @@ end
 ---@param value number
 ---@param nameDevice string|nil
 function system.safe.writeSlot(device, slot, slotType, value, nameDevice)
-    local status, error = pcall(function()
+    local status, err = pcall(function()
         ic.write_slot(device, slot, slotType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
-        --Faire crash le programme ici
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(err))
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     end
 end
 
@@ -100,30 +104,15 @@ end
 ---@param value number
 ---@param nameDevice string|nil
 function system.safe.writeSlotId(deviceId, slot, slotType, value, nameDevice)
-    local status, error = pcall(function()
+    local status, err = pcall(function()
         ic.write_slot_id(deviceId, slot, slotType, value)
     end)
     if status==false then
-        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(error))
-        --Faire crash le programme ici
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>]. Erreur : "..tostring(err))
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     end
 end
 
---Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
---La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
----@param hash PrefabHash
----@param logicType LogicType
----@param value number
----@param nameDevice string|nil
-function system.safe.batch_write(hash, logicType, value, nameDevice, methode)
-    ic.batch_write(hash, logicType, value)
-    yield()
-    local actualValue = ic.batch_read(hash, logicType, methode)
-    if actualValue ~= value then
-        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
-        --Faire crash le programme ici
-    end
-end
 
 
 
@@ -138,7 +127,7 @@ function system.safe.read(device, logicType, nameDevice)
     local value = ic.read(device, logicType)
     if value==nil then
         print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
-        --Faire crash le programme ici
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     else
         return value
     end
@@ -153,7 +142,7 @@ function system.safe.readId(deviceId, logicType, nameDevice)
     local value = ic.read(deviceId, logicType)
     if value==nil then
         print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
-        --Faire crash le programme ici
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     else
         return value
     end
@@ -169,7 +158,7 @@ function system.safe.readSlot(device, slot, slotType, nameDevice)
     local value = ic.read_slot(device, slot, slotType)
     if value==nil then
         print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
-        --Faire crash le programme ici
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     else
         return value
     end
@@ -185,11 +174,17 @@ function system.safe.readSlotId(deviceId, slot, slotType, nameDevice)
     local value = ic.read_slot_id(deviceId, slot, slotType)
     if value==nil then
         print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
-        --Faire crash le programme ici
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
     else
         return value
     end
 end
+
+
+
+
+
+
 
 --Renvoie un string colorier
 ---@param color "Blue" | "Red" | "Orange" | "Yellow" | "Green" | "Gray" | "White" | "Black" | "Brown" | "Pink" | "Purple" | "Khaki"
@@ -221,7 +216,32 @@ function system.utils.color(color, message)
     elseif color == "Khaki" then
         return "<color=#63633F>" .. message .. "</color>"
     end
-    return ""
+    print(system.log.time().."h "..system.log.level("warn").." : Couleur invalide")
+    return message
 end
+
+
+
+
+
+
+--Écriture protéger d'une valeur sur des appareils avec gestion d'erreur <p>
+--La méthode sert a definir quelle valeur pour le retour est prise en compte la Max Min ect
+---@param hash PrefabHash
+---@param logicType LogicType
+---@param value number
+---@param nameDevice string|nil
+---@param methode Average
+function system.safe.batch_write(hash, logicType, value, nameDevice, methode)
+    ic.batch_write(hash, logicType, value)
+    sleep(1)
+    local actualValue = ic.batch_read(hash, logicType, methode)
+    print(actualValue)
+    if actualValue ~= value then
+        print(system.log.time().."h "..system.log.level("fatal").." : Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].")
+        error("Device manquant : [<color=#FFFF00>"..(nameDevice==nil and "Unknow" or nameDevice).."</color>].") -- Permet de faire crash et de renvoyer l'erreur
+    end
+end
+
 
 return system -- equivalent a un export en java
