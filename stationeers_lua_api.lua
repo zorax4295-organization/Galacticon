@@ -200,3 +200,48 @@ function hash(nameHash) end
 ---@param hash integer
 ---@return string | nil
 function prefab_name(hash) end
+
+
+
+
+
+ic.net = {}
+
+--Obtenir son propre id
+---@return integer
+function ic.net.id() end
+--Liste tous les id de puce Lua sur le réseau
+---@return table
+function ic.net.peers() end
+--Enovie un message a une cible précise soit par id soit par nom
+---@param target integer | string
+---@param channel string
+---@param payload number | string | boolean | table | nil
+---@return nil
+function ic.net.send(target, channel, payload) end
+--Enovie un message a tout le monde sur le réseau et renvoie le nombre de puce aillent reçus le message
+---@param channel string
+---@param payload number | string | boolean | table | nil
+---@return integer
+function ic.net.broadcast(channel, payload) end
+--Reçois un message envoyer par send ou broadcast
+---@param channel string
+---@param handler function
+---@return nil
+function ic.net.listen(channel, handler) end
+
+--Publie un sujet a qui bont voudra l'écouter
+---@param sujet string
+---@param payload number | string | boolean | table | nil
+---@param options table
+---@return number
+function ic.net.publish(sujet, payload , options) end
+--S'inscrit pour écouter un sujet
+---@param sujet string
+---@param handler function
+---@return nil
+function ic.net.subscribe(sujet, handler) end
+--Se désincrit d'un sujet
+---@param sujet string
+---@return nil
+function ic.net.unsubscribe(sujet) end
