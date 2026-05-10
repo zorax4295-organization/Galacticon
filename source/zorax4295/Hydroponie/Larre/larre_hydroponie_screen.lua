@@ -51,7 +51,7 @@ local elements = {
         background = ui.accueil.surface:element({
             id = "background", type = "image",
             rect = { unit = "px", x = 0, y = 0, w = w, h = h },
-            props = {url = ""},
+            props = { url = "https://github.com/zorax4295-organization/Galacticon/blob/zorax4295/Larre_Hydroponie/source/zorax4295/Hydroponie/Larre/ressource/larre_hydroponie_screen/accueil_background.png?raw=true"},
         }),
         title = { 
             panel = ui.accueil.surface:element({
