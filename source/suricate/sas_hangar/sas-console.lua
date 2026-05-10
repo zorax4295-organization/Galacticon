@@ -78,6 +78,8 @@ local url = {
     stormIncoming = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/storm_incoming.png",
     inStorm = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/in_storm.png",
     stateSecurited = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/state_securited.png",
+    stateCycleEnCours = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/state_cycle_en_cours.png",
+    stateReady = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/state_ready.png",
 }
 
 -----------------------------------------------------
@@ -289,6 +291,9 @@ ic.net.subscribe("sasHangarVehiculaire/weatherState", function(_, payload, _, _,
     else
         element.cycleSas.weatherPanel:set_props({ url = url.inStorm})
     end
+end)
+ic.net.subscribe("sasHangarVehiculaire/currentState", function (sujet, payload, fromId, fromName, cache)
+    
 end)
 
 while true do

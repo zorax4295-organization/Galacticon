@@ -1,3 +1,5 @@
+---@meta -- permet d'avoir l'autocompletion sans que le fichier ai besoin d'etre ouvert
+
 
 ic = {}
 
@@ -225,10 +227,10 @@ function ic.net.send(target, channel, payload) end
 ---@return integer
 function ic.net.broadcast(channel, payload) end
 --Reçois un message envoyer par send ou broadcast
----@param channel string
----@param handler function
+---@param sujet string
+---@param handler fun(fromId:integer, fromName:string, payload:number | string | boolean | table | nil)
 ---@return nil
-function ic.net.listen(channel, handler) end
+function ic.net.listen(sujet, handler) end
 
 --Publie un sujet a qui bont voudra l'écouter
 ---@param sujet string
@@ -238,7 +240,7 @@ function ic.net.listen(channel, handler) end
 function ic.net.publish(sujet, payload , options) end
 --S'inscrit pour écouter un sujet
 ---@param sujet string
----@param handler function
+---@param handler fun(sujet:string, payload:number | string | boolean | table | nil, fromId:integer, fromName:string, cache:boolean)
 ---@return nil
 function ic.net.subscribe(sujet, handler) end
 --Se désincrit d'un sujet
