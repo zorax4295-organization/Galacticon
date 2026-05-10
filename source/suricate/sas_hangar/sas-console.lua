@@ -14,7 +14,6 @@
 local scriptedScreen= require("scriptedScreen")
 
 
-
 -- Déffinition des parametre de chaque écran
 local function createScreen(name)
     local surface = ss.ui.surface(name)
@@ -64,8 +63,9 @@ ui.accueil.set()
 ui.sasControl.set()
 
 -----------------------------------------------------
--- Initialisation des URL
+-- Déffinition des données
 -----------------------------------------------------
+
 local url = {
     buttonStart = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_start.png",
     buttonCancel = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_cancel.png",
@@ -79,6 +79,9 @@ local url = {
     inStorm = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/in_storm.png",
 }
 
+-----------------------------------------------------
+-- Construction des ui
+-----------------------------------------------------
 
 --Permet l'imbriquation d'elements dans des container
 local container = {
@@ -271,3 +274,22 @@ local element = {
         },
     },
 }
+
+-----------------------------------------------------
+-- Initialisation de la puce lua
+-----------------------------------------------------
+
+--Reception de l'état de la weatherStation
+ic.net.subscribe("sasHangarVehiculaire/weatherState", function(_, payload, _, _, _)
+    if payload == 0 then
+        element.cycleSas.weatherPanel:set_props({ url = url.noStorm})
+    elseif payload == 1 then
+        element.cycleSas.weatherPanel:set_props({ url = url.stormIncoming})
+    else
+        element.cycleSas.weatherPanel:set_props({ url = url.inStorm})
+    end
+end)
+
+while true do
+    yield()
+end
