@@ -32,14 +32,14 @@ end
 --Liste toute les page 
 local ui = {
     accueil = createScreen("accueil"),
-    cycleSas = createScreen("cycleSas")
+    sasControl = createScreen("sasControl")
 }
 
 ------------------------
 -- Déffinition d'une résolution virtuelle
 ------------------------
 
-ui.accueil.surface:get_resolution(1254, 1254)
+ui.accueil.surface:get_resolution(460, 460)
 local size = ui.accueil.surface:size()
 
 -- Déffinition de la taille de l'écran virtuelle
@@ -48,9 +48,9 @@ local h = size.h
 
 
 ui.accueil.clear()
-ui.cycleSas.clear()
+ui.sasControl.clear()
 ui.accueil.set()
-ui.cycleSas.set()
+ui.sasControl.set()
 
 --Liste tout les elements créer dans chaque écran
 local container = {
@@ -64,11 +64,10 @@ local container = {
 }
 local element = {
     cycleSas = {
-        menu = ui.cycleSas.surface:element({
-            id = "logo", type = "image",
-            rect = { unit = "px", x = 0, y = 0, w = w, h = 120 },
+        weatherPanel = ui.sasControl.surface:element({
+            id = "weatherPanel", type = "image",
+            rect = { unit = "px", x = 0, y = 0, w = w, h = 108 },
             props = { url = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/no_storm.png" },
-       }),
+        }),
     },
-    
 }
