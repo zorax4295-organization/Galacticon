@@ -77,6 +77,7 @@ local url = {
     noStorm = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/no_storm.png",
     stormIncoming = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/storm_incoming.png",
     inStorm = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/in_storm.png",
+    stateSecurited = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/state_securited.png",
 }
 
 -----------------------------------------------------
@@ -161,21 +162,6 @@ local element = {
                 }),
             },
         },
-        buttonCycle = {
-            image = ui.sasControl.surface:element({
-                id = "imageButtonCycle_sasControl", type = "image",
-                rect = { unit = "px", x = 76, y = 337, w = 307, h = 60 },
-                props = { url = url.buttonStart },
-            }),
-            button = ui.sasControl.surface:element({
-                id = "buttonCycle_sasControl", type = "button",
-                rect = { unit = "px", x = 76, y = 337, w = 307, h = 60 },
-                props = { text = "" },
-                style = { bg = "#00000000", text = "#FFFFFF", font_size = 14 },
-                on_click = function()
-                end
-            }),
-        },
         run = {
             title = {
                 labelTitle = subContainer.sasControl.run.title:element({
@@ -199,19 +185,19 @@ local element = {
                 room = {
                     labelTitleRoom = subContainer.sasControl.run.info:element({
                         id = "labelTitleRoom_sasControl", type = "label",
-                        rect = { unit = "px", x = 18, y = 3, w = 158, h = 19 },
+                        rect = { unit = "px", x = 0, y = 3, w = 158, h = 19 },
                         props = { text = "Pression dans la pièce" },
                         style = { font_size = 12, color = "#FFFFFF", align = "center" }
                     }),
                     labelStateRoom = subContainer.sasControl.run.info:element({
                         id = "labelStateRoom_sasControl", type = "label",
-                        rect = { unit = "px", x = 56, y = 90, w = 82, h = 20 },
+                        rect = { unit = "px", x = 38, y = 90, w = 82, h = 20 },
                         props = { text = "NORMAL" },
                         style = { font_size = 14, color = "#008000 ", align = "center" }
                     }),
                     gaugePressureRoom = subContainer.sasControl.run.info:element({
                         id = "gaugePressureRoom_sasControl", type = "gauge",
-                        rect = { unit = "px", x = 56, y = 25, w = 80, h = 60 },
+                        rect = { unit = "px", x = 39, y = 28, w = 80, h = 60 },
                         props = {
                             value = 0,
                             min = 0,
@@ -229,23 +215,23 @@ local element = {
                             label_color = "#FFFFFF",
                         }
                     }),
-
-
+                },
+                tank = {
                     labelTitleTank = subContainer.sasControl.run.info:element({
                         id = "labelTitleTank_sasControl", type = "label",
-                        rect = { unit = "px", x = 287, y = 5, w = 115, h = 17 },
+                        rect = { unit = "px", x = 322, y = 5, w = 115, h = 17 },
                         props = { text = "Pression dans le réservoire du sas" },
                         style = { font_size = 12, color = "#FFFFFF", align = "center" }
                     }),
                     labelStateTank = subContainer.sasControl.run.info:element({
                         id = "labelStateTank_sasControl", type = "label",
-                        rect = { unit = "px", x = 304, y = 90, w = 82, h = 20 },
+                        rect = { unit = "px", x = 339, y = 90, w = 82, h = 20 },
                         props = { text = "NORMAL" },
                         style = { font_size = 14, color = "#008000 ", align = "center" }
                     }),
                     gaugePressureTank = subContainer.sasControl.run.info:element({
                         id = "gaugePressureTank_sasControl", type = "gauge",
-                        rect = { unit = "px", x = 305, y = 28, w = 80, h = 60 },
+                        rect = { unit = "px", x = 342, y = 28, w = 80, h = 60 },
                         props = {
                             value = 0,
                             min = 0,
@@ -264,12 +250,27 @@ local element = {
                         }
                     }),
                 },
+                buttonCycle = {
+                    image = subContainer.sasControl.run.info:element({
+                        id = "imageButtonCycle_sasControl", type = "image",
+                        rect = { unit = "px", x = 131, y = 51, w = 200, h = 50 },
+                        props = { url = url.buttonStart },
+                    }),
+                    button = subContainer.sasControl.run.info:element({
+                        id = "buttonCycle_sasControl", type = "button",
+                        rect = { unit = "px", x = 131, y = 51, w = 200, h = 50 },
+                        props = { text = "" },
+                        style = { bg = "#00000000", text = "#FFFFFF", font_size = 14 },
+                        on_click = function()
+                        end
+                    }),
+                },
             },
             -- a modifier par une image
             state = container.sasControl.run:element({
-                id = "temp_state", type = "panel",
-                rect = { unit = "px", x = 0, y = 165, w = w, h = 50 },
-                style = { bg = "#D9D9D9" }
+                id = "state_sasControl", type = "image",
+                rect = { unit = "px", x = 0, y = 199, w = w, h = 94 },
+                props = { url = url.stateSecurited },
             }),
         },
     },
