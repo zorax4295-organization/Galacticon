@@ -16,11 +16,13 @@ local function createScreen(name)
 end
 -- Création des écran
 local ui = {
-    main = createScreen("main"),
+    accueil = createScreen("accueil"),
     setting = createScreen("setting"),
     supervision = createScreen("supervision"),
 }
 
 -- Déffinition de la taille de l'écran physique
-local w = ui.main.surface:size().w
-local h = ui.main.surface:size().h
+local w = ui.accueil.surface:size().w
+local h = ui.accueil.surface:size().h
+
+ui.accueil.set()
