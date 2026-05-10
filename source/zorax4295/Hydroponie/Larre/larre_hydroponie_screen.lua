@@ -54,6 +54,26 @@ ui.auto.clear()
 ui.accueil.set()
 
 --Liste tout les elements créer dans chaque écran
+local container = {
+    accueil = {},
+    auto = {
+        menu = ui.auto.surface:element({
+            id = "container_menu_auto", type = "panel",
+            rect = { unit = "px", x = 0, y = 544, w = 540, h = 40 },
+            style = { bg = "#00000000" }
+        }),
+        supervision = ui.auto.surface:element({
+            id = "container_supervision_auto", type = "panel",
+            rect = { unit = "px", x = 0, y = 64, w = 540, h = 480 },
+            style = { bg = "#00000000" }
+        }),
+        commande = ui.auto.surface:element({
+            id = "container_commande_auto", type = "panel",
+            rect = { unit = "px", x = 540, y = 64, w = 322, h = 520 },
+            style = { bg = "#00000000" }
+        }),
+    },
+}
 local elements = {
     accueil = {
         background = ui.accueil.surface:element({
@@ -107,17 +127,101 @@ local elements = {
             style = { color = "#000000", thickness = "3" },
         }),
         menu = {
-            home = {
-                button = ui.auto.surface:element({
+            accueil = {
+                -- button Accueil
+                button = container.auto.menu:element({
                     id = "button_home_auto", type = "button",
-                    rect = { unit = "px", x = 0, y = 544, w = 85, h = 40 },
+                    rect = { unit = "px", x = 0, y = 0, w = 85, h = 40 },
                     props = { text = "Accueil" },
                     style = { bg = "#F59E0B", text = "#000000", font_size = 20 },
                     on_click = function()
                         ui.accueil.set()
                     end
                 }),
-                rect = scriptedScreen.element.createRect(ui.auto.surface, "rect_button_home_auto", 0, 544, 85, 40, "#000000", 2)
+                -- Contour du bouton Accueil
+                rect = scriptedScreen.element.createRect(container.auto.menu, "rect_button_home_auto", container.auto.menu.rect.x, container.auto.menu.rect.y, 85, 40, "#000000", 2)
+            },
+            setting = {
+                -- button Setting
+                button = container.auto.menu:element({
+                    id = "button_setting_auto", type = "button",
+                    rect = { unit = "px", x = 85, y = 0, w = 85, h = 40 },
+                    props = { text = "Setting" },
+                    style = { bg = "#F59E0B", text = "#000000", font_size = 20 },
+                    on_click = function()
+                        ui.setting.set()
+                    end
+                }),
+                -- Contour du bouton Setting
+                rect = scriptedScreen.element.createRect(container.auto.menu, "rect_button_setting_auto", container.auto.menu.rect.x+85, container.auto.menu.rect.y, 85, 40, "#000000", 2)
+            },
+            auto = {
+                -- button Auto
+                button = container.auto.menu:element({
+                    id = "button_auto_auto", type = "button",
+                    rect = { unit = "px", x = 170, y = 0, w = 85, h = 40 },
+                    props = { text = "Auto" },
+                    style = { bg = "#F59E0B", text = "#000000", font_size = 20 },
+                    on_click = function()
+                        ui.auto.set()
+                    end
+                }),
+                -- Contour du bouton Auto
+                rect = scriptedScreen.element.createRect(container.auto.menu, "rect_button_auto_auto", container.auto.menu.rect.x+170, container.auto.menu.rect.y, 85, 40, "#000000", 2)
+            },
+            manu = {
+                -- button Manuel
+                button = container.auto.menu:element({
+                    id = "button_manu_auto", type = "button",
+                    rect = { unit = "px", x = 255, y = 0, w = 85, h = 40 },
+                    props = { text = "Manuel" },
+                    style = { bg = "#F59E0B", text = "#000000", font_size = 20 },
+                    on_click = function()
+                        ui.manu.set()
+                    end
+                }),
+                -- Contour du bouton Auto
+                rect = scriptedScreen.element.createRect(container.auto.menu, "rect_button_manu_auto", container.auto.menu.rect.x+255, container.auto.menu.rect.y, 85, 40, "#000000", 2)
+            },
+        },
+        supervision = {
+            entete = {
+                title = container.auto.supervision:element({
+                    id = "title_supervision_auto", type = "label",
+                    rect = { unit = "px", x = 207, y = 14, w = 126, h = 29 },
+                    props = { text = "Supervision" },
+                    style = { font_size = 20, color = "#000000", align = "center" }
+                }),
+                line_sep_titre_supervision = container.auto.supervision:element({
+                    id = "line_sep_titre_supervision_auto", type = "line",
+                    props = {
+                        -- L'équation permet de se baser sur les coordoné du container etant donné que x1 y1 ect son des coordoné absolue et ignore le parent
+                        x1 = tostring(container.auto.supervision.rect.x+0),
+                        y1 = tostring(container.auto.supervision.rect.y+58),
+                        x2 = tostring(container.auto.supervision.rect.x+540),
+                        y2 = tostring(container.auto.supervision.rect.y+58) },
+                    style = { color = "#000000", thickness = "3" },
+                }),
+            },
+        },
+        commande = {
+            entete = {
+                title = container.auto.commande:element({
+                    id = "title_commande_auto", type = "label",
+                    rect = { unit = "px", x = 99, y = 14, w = 124, h = 29 },
+                    props = { text = "Commande" },
+                    style = { font_size = 20, color = "#000000", align = "center" }
+                }),
+                line_sep_titre_supervision = container.auto.commande:element({
+                    id = "line_sep_titre_commande_auto", type = "line",
+                    props = {
+                        -- L'équation permet de se baser sur les coordoné du container etant donné que x1 y1 ect son des coordoné absolue et ignore le parent
+                        x1 = tostring(container.auto.commande.rect.x+0),
+                        y1 = tostring(container.auto.commande.rect.y+58),
+                        x2 = tostring(container.auto.commande.rect.x+322),
+                        y2 = tostring(container.auto.commande.rect.y+58) },
+                    style = { color = "#000000", thickness = "3" },
+                }),
             },
         },
     },
