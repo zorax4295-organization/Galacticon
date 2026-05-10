@@ -68,7 +68,7 @@ ui.sasControl.set()
 -----------------------------------------------------
 
 local weatherState
-local nextWeatherEventTime
+local nextWeatherEventTime = 0
 local currentState
 local url = {
     buttonStart = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_start.png",
@@ -288,11 +288,10 @@ local element = {
                     }),
                 },
             },
-            -- a modifier par une image
             state = container.sasControl.run:element({
                 id = "state_sasControl", type = "image",
                 rect = { unit = "px", x = 0, y = 199, w = w, h = 94 },
-                props = { url = url.stateSecurited },
+                props = { url = url.stateReady },
             }),
         },
     },
@@ -312,19 +311,33 @@ local function getWeatherUrl()
         return url.noStorm
     end
 end
-
 local function getStateUrl()
     -- Priorité 1 : tempête active
     -- Si weatherState == 2, on force stateSecurited.
-    if weatherState == 2 then
+    if weatherState == 2 and currentState == stateCycle.idle then
         return url.stateSecurited
     end
 
     -- Priorité 2
     if currentState == stateCycle.idle then
         return url.stateReady
+    elseif currentState == stateCycle.Maintenance then
+        print(system.log.time() .. "h " .. system.log.level("warn").." Image state maintenance manquante")
+        return nil
+    elseif currentState == stateCycle.Interruption then
+        print(system.log.time() .. "h " .. system.log.level("warn").." Image state Interruption manquante")
+        return nil
     else
         return url.stateCycleEnCours
+    end
+end
+local function getButtonCycleUrl()
+    if weatherState == 2 and currentState == stateCycle.idle then
+        return url.buttonStartBlocked
+    elseif currentState == stateCycle.idle then
+        return url.buttonStart
+    else
+        return url.buttonCancel
     end
 end
 
@@ -337,6 +350,7 @@ local function updateScreen()
         element.cycleSas.labelNextWeatherEventTime:set_props({ text = "" })
     end
     element.cycleSas.run.state:set_props({ url = getStateUrl() })
+    element.cycleSas.run.info.buttonCycle.image:set_props({ url = getButtonCycleUrl() })
 end
 
 
