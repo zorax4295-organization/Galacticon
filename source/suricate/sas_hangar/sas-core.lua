@@ -53,7 +53,8 @@ local bpSosHash = hash("ModularDeviceUtilityButton2x2")
 ----------------------------
 
 local startCycle = false -- Permet de lancer le cycle sas valeur a modifier
-
+local lastSentWeatherMode
+local lastSentNextWeatherEventTime
 local stateCycle = {
     idle = 0,
     interExterDepresurisation = 1,
@@ -63,7 +64,7 @@ local stateCycle = {
     Maintenance = 5,
     Interruption = 6,
 }
-local currentState = stateCycle.idle
+local currentState
 local sensCycle = {
     interExter = 0,
     exterInter = 1,
@@ -82,6 +83,23 @@ local stateWheater = {
 ----------------------------
 
 -- Test l'activation du bouton maintenance
+local function setCurrentState(newState)
+    if currentState ~= newState then
+        currentState = newState
+        ic.net.publish("sasHangarVehiculaire/currentState", currentState)
+    end
+end
+local function setCurrentWeather(actualWeatherMode, nextWeatherEventTime)
+    if actualWeatherMode ~= lastSentWeatherMode or nextWeatherEventTime ~= lastSentNextWeatherEventTime then
+        ic.net.publish("sasHangarVehiculaire/weatherState", {
+            actualWeatherMode = actualWeatherMode,
+            nextWeatherEventTime = nextWeatherEventTime
+        })
+
+        lastSentWeatherMode = actualWeatherMode
+        lastSentNextWeatherEventTime = nextWeatherEventTime
+    end
+end
 local function isSwitchMaintenanceEnable()
     local SwitchMaintenanceState = ic.batch_read(switchMaintenanceHash, LT.On, LBM.Maximum)
     if SwitchMaintenanceState == 1 and system.safe.read(housingAccess, LT.Setting, "IC Housing Access") == 2 then
@@ -108,7 +126,7 @@ local function isAcquitterButtonActivate()
 end
 -- Mode maintenance
 local function maintenance()
-    currentState = stateCycle.Maintenance
+    setCurrentState(stateCycle.Maintenance)
     print(system.log.time().."h "..system.log.level("info").." : Maintenance déclencher")
     ic.batch_write(flashLightHash, LT.On, 0)
     ic.batch_write(lightHash, LT.On, 1)
@@ -134,7 +152,7 @@ local function maintenance()
 end
 -- Mode interruption
 local function interruption()
-    currentState = stateCycle.Interruption
+    setCurrentState(stateCycle.Interruption)
     print(system.log.time().."h "..system.log.level("info").." : Intérruption déclencher")
     ic.batch_write(flashLightHash, LT.On, 1)
     ic.batch_write(lightHash, LT.On, 0)
@@ -163,7 +181,7 @@ end
 local function cycleInterExter()
     print(system.log.time().."h "..system.log.level("info").." : Démarage cycle interieur -> exterieur")
     if currentState == stateCycle.interExterDepresurisation or currentState == stateCycle.idle then
-        currentState = stateCycle.interExterDepresurisation
+        setCurrentState(stateCycle.interExterDepresurisation)
         ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 1)
         ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 0)
         ic.batch_write(lightHash, LT.On, 0)
@@ -180,7 +198,7 @@ local function cycleInterExter()
         end
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
         yield()
-        currentState = stateCycle.interExterPresurisation
+        setCurrentState(stateCycle.interExterPresurisation)
     end
 
     if currentState == stateCycle.interExterPresurisation then
@@ -209,7 +227,7 @@ end
 local function cycleExterInter()
     print(system.log.time().."h "..system.log.level("info").." : Démarage cycle exterieur -> interieur")
     if currentState == stateCycle.ExterInterDepresurisation or currentState == stateCycle.idle then
-        currentState = stateCycle.ExterInterDepresurisation
+        setCurrentState(stateCycle.ExterInterDepresurisation)
         ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 1)
         ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 0)
         ic.batch_write(lightHash, LT.On, 0)
@@ -217,7 +235,7 @@ local function cycleExterInter()
         yield()
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.Mode, 1) -- Dépressuriser
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 1)
-        while system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= 0 do -- Tant que la pression !=0 alors je patiente
+        while system.safe.read(sensor, LT.Pressure, "Gas Sensor sas") ~= 0 do -- Tant que la pression !=0 alors je patiente
             if isInterruptionButtonActivate() then
                 interruption()
                 return
@@ -226,15 +244,17 @@ local function cycleExterInter()
         end
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
         yield()
-        currentState = stateCycle.ExterInterPresurisation
+        setCurrentState(stateCycle.ExterInterPresurisation)
     end
     
     if currentState == stateCycle.ExterInterPresurisation then
+        local pressureInter = system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Intern")
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.Mode, 0) -- Pressuriser
+        ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.PressureExternal, pressureInter)
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 1)
-        while 
-            system.safe.read(sensor, LT.Pressure, "Gas Sensor") <= system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Extern")-0.5 and
-            system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Extern") >=10 -- Supérieur a 10kPa
+        while
+            system.safe.read(sensor, LT.Pressure, "Gas Sensor sas") <= system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Intern")-0.5 and
+            system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Intern") >=10 -- Supérieur a 10kPa
         do
             if isInterruptionButtonActivate() then
                 interruption()
@@ -279,13 +299,7 @@ while true do
     local actualWeatherMode = system.safe.read(weatherStation, LT.Mode, "Weather Station")
     local nextWeatherEventTime = system.safe.read(weatherStation, LT.NextWeatherEventTime, "weather station") / 60 -- Renvoie dans combient de temps arrive la prochaine tempète en minute
 
-    if actualWeatherMode == 0 then
-        local actualWeather = stateWheater.noStorm
-    elseif actualWeatherMode == 1 then
-        local actualWeather = stateWheater.stormIncoming
-    else
-        local actualWeather = stateWheater.inStorm
-    end
+    setCurrentWeather(actualWeatherMode, nextWeatherEventTime) --Envoie les valeur actualiser a l'ecran
 
     if isSwitchMaintenanceEnable() then
         maintenance()
@@ -294,7 +308,6 @@ while true do
         interruption()
     end
     
-    --ic.net.send(screen, "weather", {actualWeatherMode = actualWeatherMode, nextWeatherEventTime = nextWeatherEventTime})
 
     if startCycle==1 and accessLevel >= 1 then -- accessLevel 1 = accès normal et 2 = accès maintenance
         if currentSensCycle == sensCycle.interExter then
@@ -304,6 +317,6 @@ while true do
         end
     end
 
-    currentState = stateCycle.idle --Le système est en attente d'un lancement du cycle
+    setCurrentState(stateCycle.idle) --Le système est en attente d'un lancement du cycle
     yield()
 end

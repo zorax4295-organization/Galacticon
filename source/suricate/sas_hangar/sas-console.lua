@@ -11,6 +11,7 @@
 -- import de la librairie
 -----------------------------------------------------
 
+local system = require("system")
 local scriptedScreen= require("scriptedScreen")
 
 
@@ -67,6 +68,7 @@ ui.sasControl.set()
 -----------------------------------------------------
 
 local weatherState
+local nextWeatherEventTime
 local currentState
 local url = {
     buttonStart = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_start.png",
@@ -142,6 +144,12 @@ local element = {
             id = "weatherPanel", type = "image",
             rect = { unit = "px", x = 0, y = 0, w = w, h = 108 },
             props = { url = url.noStorm },
+        }),
+        labelNextWeatherEventTime = ui.sasControl.surface:element({
+            id = "labelNextWeatherEventTime_sasControl", type = "label",
+            rect = { unit = "px", x = 118, y = 63, w = 210, h = 15 },
+            props = { text = "" },
+            style = { font_size = 14, color = "#FFFFFF", align = "center" }
         }),
         menu = {
             buttonSetting = {
@@ -323,6 +331,11 @@ end
 --Actualise l'interface
 local function updateScreen()
     element.cycleSas.weatherPanel:set_props({ url = getWeatherUrl()})
+    if nextWeatherEventTime ~= 0 then
+        element.cycleSas.labelNextWeatherEventTime:set_props({ text = "Arrivée estimée : " .. nextWeatherEventTime .. " secondes" })
+    else        
+        element.cycleSas.labelNextWeatherEventTime:set_props({ text = "" })
+    end
     element.cycleSas.run.state:set_props({ url = getStateUrl() })
 end
 
@@ -333,7 +346,12 @@ end
 
 --Reception de l'état de la weatherStation
 ic.net.subscribe("sasHangarVehiculaire/weatherState", function(_, payload, _, _, _)
-    weatherState = payload
+    if type(payload) ~= "table" then -- Gestion des erreurs
+        print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/weatherState</color>> n'est pas de type <color=#FFFF00>table</color>.")
+        return
+    end
+    weatherState = payload.actualWeatherMode
+    nextWeatherEventTime = payload.nextWeatherEventTime
     updateScreen()
 end)
 --Reception de l'état actuel du programme core
