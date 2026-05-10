@@ -35,13 +35,14 @@ end
 local ui = {
     accueil = createScreen("accueil"),
     setting = createScreen("setting"),
-    supervision = createScreen("supervision"),
+    auto = createScreen("auto"),
+    manu = createScreen("manu"),
 }
 
 -- Déffinition de la taille de l'écran physique
-local w = ui.accueil.surface:size().w
-local h = ui.accueil.surface:size().h
-print("w=",w," | h=",h)
+local w = 862
+local h = 584
+
 
 ui.accueil.clear()
 
@@ -49,32 +50,51 @@ ui.accueil.clear()
 local elements = {
     accueil = {
         background = ui.accueil.surface:element({
-            id = "background", type = "image",
+            id = "background_accueil", type = "image",
             rect = { unit = "px", x = 0, y = 0, w = w, h = h },
             props = { url = "https://github.com/zorax4295-organization/Galacticon/blob/zorax4295/Larre_Hydroponie/source/zorax4295/Hydroponie/Larre/ressource/larre_hydroponie_screen/accueil_background.png?raw=true"},
         }),
         title = { 
             panel = ui.accueil.surface:element({
-                id = "bg", type = "panel",
+                id = "panel_title_accueil", type = "panel",
                 rect = { unit = "px", x = 144, y = 368, w = 573, h = 130 },
                 style = { bg = "#FFFFFF" }
             }),
             label = ui.accueil.surface:element({
-                id = "title", type = "label",
+                id = "title_accueil", type = "label",
                 rect = { unit = "px", x = 144, y = 368, w = 573, h = 130 },
                 props = { text = "Station automatisée de récolte et de stockage" },
                 style = { font_size = 50, color = "#000000", align = "center" }
             }),
-        button = ui.accueil.surface:element({
-                id = "start", type = "button",
+        button_commencer = ui.accueil.surface:element({
+                id = "button_commencer_accueil", type = "button",
                 rect = { unit = "px", x = 308, y = 254, w = 245, h = 75 },
                 props = { text = "Commencer" },
                 style = { bg = "#EDEDED", text = "#000000", font_size = 20 },
-                on_click = function(playerName)
-                    print("Clicked by " .. playerName)
+                on_click = function()
+                    ui.accueil.clear()
+                    ui.auto.set()
                 end
             }),
         },
+    },
+    auto = {
+        background = ui.auto.surface:element({
+            id = "background_auto", type = "panel",
+            rect = { unit = "px", x = 0, y = 0, w = w, h = h },
+            style = { bg = "#FFFFFF" }
+        }),
+        title = ui.auto.surface:element({
+            id = "title_auto", type = "label",
+            rect = { unit = "px", x = 369, y = 14, w = 123, h = 38 },
+            props = { text = "AUTO" },
+            style = { font_size = 32, color = "#000000", align = "center" }
+        }),
+        line_sep_titre = ui.auto.surface:element({
+            id = "line_sep_titre_auto", type = "line",
+            props = { x1 = "0", y1 = "64", x2 = "862", y2 = "64" },
+            style = { color = "#000000", thickness = "3" },
+        }),
     },
 }
 
