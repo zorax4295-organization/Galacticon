@@ -304,9 +304,9 @@ local element = {
                             local action = getButtonCycleAction()
 
                             if action == buttonCycleAction.start then
-                                ic.net.send("ic housing core", "sasHangarVehiculaire/startCycleRequested", true)
+                                ic.net.send("IC Housing core", "sasHangarVehiculaire/startCycleRequested", true)
                             elseif action == buttonCycleAction.cancel then
-                                ic.net.send("ic housing core", "sasHangarVehiculaire/cancelCycleRequested", true)
+                                ic.net.send("IC Housing core", "sasHangarVehiculaire/cancelCycleRequested", true)
                             end
                         end
                     }),
@@ -360,6 +360,8 @@ local function getButtonCycleUrl()
         return url.buttonStartBlocked
     elseif currentState == stateCycle.idle then
         return url.buttonStart
+    elseif currentState == stateCycle.Maintenance or currentState == stateCycle.Interruption then
+        return url.buttonStartBlocked
     else
         return url.buttonCancel
     end

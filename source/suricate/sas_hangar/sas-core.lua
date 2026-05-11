@@ -279,6 +279,7 @@ end
 ----------------------------
 do
     ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 1)
+    ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
     ic.batch_write(flashLightHash, LT.Lock, 1)
     ic.batch_write(flashLightHash, LT.On, 0)
     ic.batch_write(lightHash, LT.Lock, 1)
@@ -293,14 +294,14 @@ end
 -- reception message réseau
 -----------------------------------------------------
 
-ic.net.subscribe("sasHangarVehiculaire/startCycleRequested", function (_, payload, _, _, _)
+ic.net.listen("sasHangarVehiculaire/startCycleRequested", function (_, _, payload)
     if type(payload) ~= "boolean" then
         print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/startCycleRequested</color>> n'est pas de type <color=#FFFF00>boolean</color>.")
         return
     end
     startCycleRequested = payload
 end)
-ic.net.subscribe("sasHangarVehiculaire/cancelCycleRequested", function (_, payload, _, _, _)
+ic.net.listen("sasHangarVehiculaire/cancelCycleRequested", function (_, _, payload)
     if type(payload) ~= "boolean" then
         print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/cancelCycleRequested</color>> n'est pas de type <color=#FFFF00>boolean</color>.")
         return
@@ -331,7 +332,7 @@ while true do
     
 
     if startCycleRequested==true then -- accessLevel 1 = accès normal et 2 = accès maintenance
-    startCycleRequested = false    
+    startCycleRequested = false
         if accessLevel >= 1 then
             if currentSensCycle == sensCycle.interExter then
                 cycleInterExter()
