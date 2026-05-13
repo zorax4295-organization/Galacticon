@@ -70,6 +70,8 @@ ui.sasControl.set()
 local weatherState
 local nextWeatherEventTime = 0
 local currentState
+local actualRoomPressure = 0
+local actualTankPressure = 0
 -- true = dcy et false = cancel
 local actionButtonStart = true
 local url = {
@@ -372,17 +374,31 @@ end
 --Actualise l'interface
 local function updateScreen()
     element.cycleSas.weatherPanel:set_props({ url = getWeatherUrl()})
-    if nextWeatherEventTime ~= 0 then
+    if nextWeatherEventTime > 0 then
         if nextWeatherEventTime <= 60 then
             element.cycleSas.labelNextWeatherEventTime:set_props({ text = "Arrivée estimée : " .. nextWeatherEventTime .. " secondes" })
         else
-            element.cycleSas.labelNextWeatherEventTime:set_props({ text = "Arrivée estimée : " .. nextWeatherEventTime/60 .. " minute" })
+            -- /60 pour convertir en minute et le *10 /10 permet d'avoir arrondit avec 1 chiffre apres la virgule
+            nextWeatherEventTime = math.floor((nextWeatherEventTime / 60) * 10 ) / 10
+            element.cycleSas.labelNextWeatherEventTime:set_props({ text = "Arrivée estimée : " .. nextWeatherEventTime .. " minute" })
         end
-    else        
+    else
         element.cycleSas.labelNextWeatherEventTime:set_props({ text = "" })
     end
     element.cycleSas.run.state:set_props({ url = getStateUrl() })
     element.cycleSas.run.info.buttonCycle.image:set_props({ url = getButtonCycleUrl() })
+
+    -- Actualisation des gauges de pression
+    if actualRoomPressure >= 1000 then
+        element.cycleSas.run.info.room.gaugePressureRoom:set_props({ value = actualRoomPressure / 1000, max = 60, unit = " MPa" })
+    else
+        element.cycleSas.run.info.room.gaugePressureRoom:set_props({ value = actualRoomPressure })
+    end
+    if actualTankPressure >= 1000 then
+        element.cycleSas.run.info.tank.gaugePressureTank:set_props({ value = actualTankPressure / 1000, max = 60, unit = " MPa" })
+    else
+        element.cycleSas.run.info.tank.gaugePressureTank:set_props({ value = actualTankPressure })
+    end
 end
 
 
@@ -403,6 +419,16 @@ end)
 --Reception de l'état actuel du programme core
 ic.net.subscribe("sasHangarVehiculaire/currentState", function (_, payload, _, _, _)
     currentState = payload
+    updateScreen()
+end)
+ic.net.subscribe("sasHangarVehiculaire/actualPressure", function (_, payload, _, _, _)
+    if type(payload) ~= "table" then
+        print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/actualPressure</color>> n'est pas de type <color=#FFFF00>table</color>.")
+        return
+    end
+
+    actualRoomPressure = payload.actualRoomPressure
+    actualTankPressure = payload.actualTankPressure
     updateScreen()
 end)
 

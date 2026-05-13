@@ -33,6 +33,7 @@ local sensor = 1
 local sensorIntern = 2
 local sensorExtern = 3
 local weatherStation = 4
+local pipeAnalizer = 5
 local flashLightHash = hash("StructureFlashingLight")
 local hangarDoorHash = hash("StructureGlassDoor")
 local hangarDoorInterName = hash("Glass Door inter")
@@ -55,7 +56,6 @@ local bpSosHash = hash("ModularDeviceUtilityButton2x2")
 local lastSentWeatherMode
 local lastSentNextWeatherEventTime
 local startCycleRequested = false
-local cancelCycleRequested = false
 local stateCycle = {
     idle = 0,
     interExterDepresurisation = 1,
@@ -82,6 +82,7 @@ local stateWheater = {
 ----------------------------
 -- Définition des functions
 ----------------------------
+
 -- Définit le current state
 local function setCurrentState(newState)
     if currentState ~= newState then
@@ -303,13 +304,6 @@ ic.net.listen("sasHangarVehiculaire/startCycleRequested", function (_, _, payloa
     end
     startCycleRequested = payload
 end)
-ic.net.listen("sasHangarVehiculaire/cancelCycleRequested", function (_, _, payload)
-    if type(payload) ~= "boolean" then
-        print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/cancelCycleRequested</color>> n'est pas de type <color=#FFFF00>boolean</color>.")
-        return
-    end
-    cancelCycleRequested = payload
-end)
 
 
 
@@ -323,6 +317,12 @@ while true do
     local actualWeatherMode = system.safe.read(weatherStation, LT.Mode, "Weather Station")
     local nextWeatherEventTime = system.safe.read(weatherStation, LT.NextWeatherEventTime, "weather station") -- Renvoie dans combient de temps arrive la prochaine tempète en seconde
 
+    -- Envoie des donnés de pression du tank et de la room
+    ic.net.publish("sasHangarVehiculaire/actualPressure", {
+        actualRoomPressure = system.safe.read(sensor, LT.Pressure, "Gas Sensor"),
+        actualTankPressure = system.safe.read(pipeAnalizer, LT.Pressure),
+    })
+
     setCurrentWeather(actualWeatherMode, nextWeatherEventTime) --Envoie les valeur actualiser a l'ecran
 
     if isSwitchMaintenanceEnable() then
@@ -331,7 +331,7 @@ while true do
     if isInterruptionButtonActivate() then
         interruption()
     end
-    
+
 
     if startCycleRequested==true then -- accessLevel 1 = accès normal et 2 = accès maintenance
     startCycleRequested = false
