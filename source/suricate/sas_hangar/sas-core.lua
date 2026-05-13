@@ -56,6 +56,7 @@ local bpSosHash = hash("ModularDeviceUtilityButton2x2")
 local lastSentWeatherMode
 local lastSentNextWeatherEventTime
 local startCycleRequested = false
+local cancelCycleRequested  = false
 local stateCycle = {
     idle = 0,
     interExterDepresurisation = 1,
@@ -90,6 +91,7 @@ local function setCurrentState(newState)
         ic.net.publish("sasHangarVehiculaire/currentState", currentState)
     end
 end
+-- Si une nouvelle valeur apparait parmis les argument alors on envoie toute les valeur en message réseau
 local function setCurrentWeather(actualWeatherMode, nextWeatherEventTime)
     if actualWeatherMode ~= lastSentWeatherMode or nextWeatherEventTime ~= lastSentNextWeatherEventTime then
         ic.net.publish("sasHangarVehiculaire/weatherState", {
@@ -101,6 +103,8 @@ local function setCurrentWeather(actualWeatherMode, nextWeatherEventTime)
         lastSentNextWeatherEventTime = nextWeatherEventTime
     end
 end
+
+
 -- Test l'activation du bouton maintenance
 local function isSwitchMaintenanceEnable()
     local SwitchMaintenanceState = ic.batch_read(switchMaintenanceHash, LT.On, LBM.Maximum)
@@ -128,6 +132,15 @@ local function isAcquitterButtonActivate()
         return false
     end
 end
+
+-- Envoie des donnés de pression du tank et de la room
+local function refreshPressurGauge()
+    ic.net.publish("sasHangarVehiculaire/actualPressure", {
+        actualRoomPressure = system.safe.read(sensor, LT.Pressure, "Gas Sensor"),
+        actualTankPressure = system.safe.read(pipeAnalizer, LT.Pressure),
+    })
+end
+
 -- Mode maintenance
 local function maintenance()
     setCurrentState(stateCycle.Maintenance)
@@ -142,6 +155,7 @@ local function maintenance()
     ic.batch_write(poweredVentHash, LT.Lock, 0)
 
     while isSwitchMaintenanceEnable() and system.safe.read(housingAccess, LT.Setting, "IC Housing Access") == 2 do
+        refreshPressurGauge()
         yield()
     end
     print(system.log.time().."h "..system.log.level("info").." : fin de maintenance")
@@ -171,7 +185,7 @@ local function interruption()
         if isAcquitterButtonActivate() and system.safe.read(housingAccess, LT.Setting, "IC Housing Access") == 2 then
             break
         end
-
+        refreshPressurGauge()
 
         yield()
     end
@@ -190,19 +204,64 @@ local function cycleInterExter()
         ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 0)
         ic.batch_write(lightHash, LT.On, 0)
         ic.batch_write(flashLightHash, LT.On, 1)
+
+        -- Test si l'arrêt du cycle est demander par cancel
+        if cancelCycleRequested then
+            cancelCycleRequested = false
+            setCurrentState(stateCycle.idle)
+            currentSensCycle = sensCycle.exterInter
+            print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+            ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
+            ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
+            ic.batch_write(flashLightHash, LT.On, 0)
+            ic.batch_write(lightHash, LT.On, 1)
+            return
+        end
+
         yield()
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.Mode, 1) -- Dépressuriser
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 1)
         while system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= 0 do -- Tant que la pression !=0 alors je patiente
+            refreshPressurGauge()
             if isInterruptionButtonActivate() then
                 interruption()
                 return
             end
+
+            -- Test si l'arrêt du cycle est demander par cancel
+            if cancelCycleRequested then
+                cancelCycleRequested = false
+                setCurrentState(stateCycle.idle)
+                currentSensCycle = sensCycle.exterInter
+                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+                ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
+                yield()
+                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
+                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
+                ic.batch_write(flashLightHash, LT.On, 0)
+                ic.batch_write(lightHash, LT.On, 1)
+                return
+            end
+
             yield()
         end
         ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
         yield()
         setCurrentState(stateCycle.interExterPresurisation)
+    end
+
+    refreshPressurGauge()
+    -- Test si l'arrêt du cycle est demander par cancel
+    if cancelCycleRequested then
+        cancelCycleRequested = false
+        setCurrentState(stateCycle.idle)
+        currentSensCycle = sensCycle.exterInter
+        print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+        ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
+        ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
+        ic.batch_write(flashLightHash, LT.On, 0)
+        ic.batch_write(lightHash, LT.On, 1)
+        return
     end
 
     if currentState == stateCycle.interExterPresurisation then
@@ -212,10 +271,27 @@ local function cycleInterExter()
             system.safe.read(sensor, LT.Pressure, "Gas Sensor") ~= system.safe.read(sensorExtern, LT.Pressure, "Gas Sensor Extern") and
             system.safe.read(sensorExtern, LT.Pressure, "Gas Sensor Extern") >=10 -- Supérieur a 10kPa
         do
+            refreshPressurGauge()
             if isInterruptionButtonActivate() then
                 interruption()
                 return
             end
+
+            -- Test si l'arrêt du cycle est demander par cancel
+            if cancelCycleRequested then
+                cancelCycleRequested = false
+                setCurrentState(stateCycle.idle)
+                currentSensCycle = sensCycle.exterInter
+                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+                ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
+                yield()
+                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
+                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
+                ic.batch_write(flashLightHash, LT.On, 0)
+                ic.batch_write(lightHash, LT.On, 1)
+                return
+            end
+
             yield()
         end
         yield()
@@ -236,19 +312,64 @@ local function cycleExterInter()
         ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 0)
         ic.batch_write(lightHash, LT.On, 0)
         ic.batch_write(flashLightHash, LT.On, 1)
+
+        -- Test si l'arrêt du cycle est demander par cancel
+        if cancelCycleRequested then
+            cancelCycleRequested = false
+            setCurrentState(stateCycle.idle)
+            currentSensCycle = sensCycle.interExter
+            print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+            ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
+            ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
+            ic.batch_write(flashLightHash, LT.On, 0)
+            ic.batch_write(lightHash, LT.On, 1)
+            return
+        end
+
         yield()
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.Mode, 1) -- Dépressuriser
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 1)
         while system.safe.read(sensor, LT.Pressure, "Gas Sensor sas") ~= 0 do -- Tant que la pression !=0 alors je patiente
+            refreshPressurGauge()
             if isInterruptionButtonActivate() then
                 interruption()
                 return
             end
+
+            -- Test si l'arrêt du cycle est demander par cancel
+            if cancelCycleRequested then
+                cancelCycleRequested = false
+                setCurrentState(stateCycle.idle)
+                currentSensCycle = sensCycle.interExter
+                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+                ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
+                yield()
+                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
+                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
+                ic.batch_write(flashLightHash, LT.On, 0)
+                ic.batch_write(lightHash, LT.On, 1)
+                return
+            end
+
             yield()
         end
         ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
         yield()
         setCurrentState(stateCycle.ExterInterPresurisation)
+    end
+
+    refreshPressurGauge()
+    -- Test si l'arrêt du cycle est demander par cancel
+    if cancelCycleRequested then
+        cancelCycleRequested = false
+        setCurrentState(stateCycle.idle)
+        currentSensCycle = sensCycle.interExter
+        print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+        ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
+        ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
+        ic.batch_write(flashLightHash, LT.On, 0)
+        ic.batch_write(lightHash, LT.On, 1)
+        return
     end
 
     if currentState == stateCycle.ExterInterPresurisation then
@@ -261,10 +382,27 @@ local function cycleExterInter()
             system.safe.read(sensor, LT.Pressure, "Gas Sensor sas") <= system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Intern")-0.5 and
             system.safe.read(sensorIntern, LT.Pressure, "Gas Sensor Intern") >=10 -- Supérieur a 10kPa
         do
+            refreshPressurGauge()
             if isInterruptionButtonActivate() then
                 interruption()
                 return
             end
+
+            -- Test si l'arrêt du cycle est demander par cancel
+            if cancelCycleRequested then
+                cancelCycleRequested = false
+                setCurrentState(stateCycle.idle)
+                currentSensCycle = sensCycle.interExter
+                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+                ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
+                yield()
+                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
+                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
+                ic.batch_write(flashLightHash, LT.On, 0)
+                ic.batch_write(lightHash, LT.On, 1)
+                return
+            end
+
             yield()
         end
         yield()
@@ -304,6 +442,14 @@ ic.net.listen("sasHangarVehiculaire/startCycleRequested", function (_, _, payloa
     end
     startCycleRequested = payload
 end)
+ic.net.listen("sasHangarVehiculaire/cancelCycleRequested", function (_, _, payload)
+    if type(payload) ~= "boolean" then
+        print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/cancelCycleRequested</color>> n'est pas de type <color=#FFFF00>boolean</color>.")
+        return
+    end
+
+    cancelCycleRequested = payload
+end)
 
 
 
@@ -317,11 +463,7 @@ while true do
     local actualWeatherMode = system.safe.read(weatherStation, LT.Mode, "Weather Station")
     local nextWeatherEventTime = system.safe.read(weatherStation, LT.NextWeatherEventTime, "weather station") -- Renvoie dans combient de temps arrive la prochaine tempète en seconde
 
-    -- Envoie des donnés de pression du tank et de la room
-    ic.net.publish("sasHangarVehiculaire/actualPressure", {
-        actualRoomPressure = system.safe.read(sensor, LT.Pressure, "Gas Sensor"),
-        actualTankPressure = system.safe.read(pipeAnalizer, LT.Pressure),
-    })
+    refreshPressurGauge()
 
     setCurrentWeather(actualWeatherMode, nextWeatherEventTime) --Envoie les valeur actualiser a l'ecran
 

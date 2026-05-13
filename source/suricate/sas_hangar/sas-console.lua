@@ -67,13 +67,6 @@ ui.sasControl.set()
 -- Déffinition des données
 -----------------------------------------------------
 
-local weatherState
-local nextWeatherEventTime = 0
-local currentState
-local actualRoomPressure = 0
-local actualTankPressure = 0
--- true = dcy et false = cancel
-local actionButtonStart = true
 local url = {
     buttonStart = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_start.png",
     buttonCancel = "https://raw.githubusercontent.com/zorax4295-organization/Galacticon/refs/heads/suricate/sas/hangar/source/.ressource/sas_hangar_vehiculaire/button_cancel.png",
@@ -103,6 +96,11 @@ local buttonCycleAction = {
     cancel = "cancel",
     blocked = "blocked",
 }
+local weatherState
+local nextWeatherEventTime = 0
+local actualRoomPressure = 0
+local actualTankPressure = 0
+local currentState = stateCycle.idle
 
 
 local function getButtonCycleAction()
@@ -253,7 +251,7 @@ local element = {
                         style = {
                             bg = "#111827",
                             arc_thickness = 8,
-                            font_size = 12,
+                            font_size = 16,
                             value_color = "#0bc1f4",
                             label_color = "#FFFFFF",
                         }
@@ -287,7 +285,7 @@ local element = {
                         style = {
                             bg = "#111827",
                             arc_thickness = 8,
-                            font_size = 12,
+                            font_size = 16,
                             value_color = "#0bc1f4",
                             label_color = "#FFFFFF",
                         }
@@ -418,6 +416,10 @@ ic.net.subscribe("sasHangarVehiculaire/weatherState", function(_, payload, _, _,
 end)
 --Reception de l'état actuel du programme core
 ic.net.subscribe("sasHangarVehiculaire/currentState", function (_, payload, _, _, _)
+    if type(payload) ~= "number" then
+        print(system.log.time() .. "h " .. system.log.level("warn").."La charge utile du message réseau <<color=#FFFF00>sasHangarVehiculaire/currentState</color>> n'est pas de type <color=#FFFF00>number</color>.")
+        return
+    end
     currentState = payload
     updateScreen()
 end)
