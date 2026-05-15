@@ -53,6 +53,7 @@ local bpSosHash = hash("ModularDeviceUtilityButton2x2")
 -- Définition des donnés
 ----------------------------
 
+local memInitDone = mem_read(0)
 local lastSentWeatherMode
 local lastSentNextWeatherEventTime
 local startCycleRequested = false
@@ -65,6 +66,8 @@ local stateCycle = {
     ExterInterPresurisation = 4,
     Maintenance = 5,
     Interruption = 6,
+    cancelToExter = 7,
+    cancelToInter = 8,
 }
 local currentState
 local sensCycle = {
@@ -132,7 +135,6 @@ local function isAcquitterButtonActivate()
         return false
     end
 end
-
 -- Envoie des donnés de pression du tank et de la room
 local function refreshPressurGauge()
     ic.net.publish("sasHangarVehiculaire/actualPressure", {
@@ -141,6 +143,45 @@ local function refreshPressurGauge()
     })
 end
 
+
+-- Arrête prematurement le cycle du sas en ouvrant la porte externe
+local function cancelToExter()
+    cancelCycleRequested = false
+    print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+
+    ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
+    ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
+
+    yield()
+
+    ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
+    ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
+
+    ic.batch_write(flashLightHash, LT.On, 0)
+    ic.batch_write(lightHash, LT.On, 1)
+
+    currentSensCycle = sensCycle.exterInter
+    setCurrentState(stateCycle.idle)
+end
+-- Arrête prematurement le cycle du sas en ouvrant la porte interne
+local function cancelToInter()
+    cancelCycleRequested = false
+    print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
+
+    ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
+    ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
+
+    yield()
+
+    ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
+    ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
+
+    ic.batch_write(flashLightHash, LT.On, 0)
+    ic.batch_write(lightHash, LT.On, 1)
+
+    currentSensCycle = sensCycle.interExter
+    setCurrentState(stateCycle.idle)
+end
 -- Mode maintenance
 local function maintenance()
     setCurrentState(stateCycle.Maintenance)
@@ -207,14 +248,8 @@ local function cycleInterExter()
 
         -- Test si l'arrêt du cycle est demander par cancel
         if cancelCycleRequested then
-            cancelCycleRequested = false
-            setCurrentState(stateCycle.idle)
-            currentSensCycle = sensCycle.exterInter
-            print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-            ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
-            ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
-            ic.batch_write(flashLightHash, LT.On, 0)
-            ic.batch_write(lightHash, LT.On, 1)
+            setCurrentState(stateCycle.cancelToExter)
+            cancelToExter()
             return
         end
 
@@ -230,16 +265,8 @@ local function cycleInterExter()
 
             -- Test si l'arrêt du cycle est demander par cancel
             if cancelCycleRequested then
-                cancelCycleRequested = false
-                setCurrentState(stateCycle.idle)
-                currentSensCycle = sensCycle.exterInter
-                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-                ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
-                yield()
-                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
-                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
-                ic.batch_write(flashLightHash, LT.On, 0)
-                ic.batch_write(lightHash, LT.On, 1)
+                setCurrentState(stateCycle.cancelToExter)
+                cancelToExter()
                 return
             end
 
@@ -253,14 +280,8 @@ local function cycleInterExter()
     refreshPressurGauge()
     -- Test si l'arrêt du cycle est demander par cancel
     if cancelCycleRequested then
-        cancelCycleRequested = false
-        setCurrentState(stateCycle.idle)
-        currentSensCycle = sensCycle.exterInter
-        print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-        ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
-        ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
-        ic.batch_write(flashLightHash, LT.On, 0)
-        ic.batch_write(lightHash, LT.On, 1)
+        setCurrentState(stateCycle.cancelToExter)
+        cancelToExter()
         return
     end
 
@@ -279,16 +300,8 @@ local function cycleInterExter()
 
             -- Test si l'arrêt du cycle est demander par cancel
             if cancelCycleRequested then
-                cancelCycleRequested = false
-                setCurrentState(stateCycle.idle)
-                currentSensCycle = sensCycle.exterInter
-                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-                ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
-                yield()
-                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 0)
-                ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Open, 1)
-                ic.batch_write(flashLightHash, LT.On, 0)
-                ic.batch_write(lightHash, LT.On, 1)
+                setCurrentState(stateCycle.cancelToExter)
+                cancelToExter()
                 return
             end
 
@@ -315,14 +328,8 @@ local function cycleExterInter()
 
         -- Test si l'arrêt du cycle est demander par cancel
         if cancelCycleRequested then
-            cancelCycleRequested = false
-            setCurrentState(stateCycle.idle)
-            currentSensCycle = sensCycle.interExter
-            print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-            ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
-            ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
-            ic.batch_write(flashLightHash, LT.On, 0)
-            ic.batch_write(lightHash, LT.On, 1)
+            setCurrentState(stateCycle.cancelToInter)
+            cancelToInter()
             return
         end
 
@@ -338,16 +345,8 @@ local function cycleExterInter()
 
             -- Test si l'arrêt du cycle est demander par cancel
             if cancelCycleRequested then
-                cancelCycleRequested = false
-                setCurrentState(stateCycle.idle)
-                currentSensCycle = sensCycle.interExter
-                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-                ic.batch_write_name(poweredVentHash, poweredVentExterName, LT.On, 0)
-                yield()
-                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
-                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
-                ic.batch_write(flashLightHash, LT.On, 0)
-                ic.batch_write(lightHash, LT.On, 1)
+                setCurrentState(stateCycle.cancelToInter)
+                cancelToInter()
                 return
             end
 
@@ -361,14 +360,8 @@ local function cycleExterInter()
     refreshPressurGauge()
     -- Test si l'arrêt du cycle est demander par cancel
     if cancelCycleRequested then
-        cancelCycleRequested = false
-        setCurrentState(stateCycle.idle)
-        currentSensCycle = sensCycle.interExter
-        print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-        ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
-        ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
-        ic.batch_write(flashLightHash, LT.On, 0)
-        ic.batch_write(lightHash, LT.On, 1)
+        setCurrentState(stateCycle.cancelToInter)
+        cancelToInter()
         return
     end
 
@@ -390,16 +383,8 @@ local function cycleExterInter()
 
             -- Test si l'arrêt du cycle est demander par cancel
             if cancelCycleRequested then
-                cancelCycleRequested = false
-                setCurrentState(stateCycle.idle)
-                currentSensCycle = sensCycle.interExter
-                print(system.log.time().."h "..system.log.level("info").." : le cycle a été arrêter prématurément")
-                ic.batch_write_name(poweredVentHash, poweredVentInterName, LT.On, 0)
-                yield()
-                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
-                ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Open, 1)
-                ic.batch_write(flashLightHash, LT.On, 0)
-                ic.batch_write(lightHash, LT.On, 1)
+                setCurrentState(stateCycle.cancelToInter)
+                cancelToInter()
                 return
             end
 
@@ -415,10 +400,34 @@ local function cycleExterInter()
     currentSensCycle = sensCycle.interExter
 end
 
+
+-- Sauvgarde des donnés
+function serialize()
+    return util.json.encode({
+        currentState = currentState,
+        currentSensCycle = currentSensCycle,
+    })
+end
+-- Reconstruction des donnés
+function deserialize(blob)
+    if type(blob) ~= "string" then
+        print(system.log.time().."h "..system.log.level("info").." : Echec de la Reconstruction des donnés blob n'est pas de type string")
+        return
+    end
+    local ok, data = pcall(util.json.decode, blob)
+    if ok and type(data) == "table" then
+        currentState = data.currentState
+        currentSensCycle = data.currentSensCycle
+    else
+        print(system.log.time().."h "..system.log.level("info").." : Echec de la Reconstruction des donnés data n'est pas de type table")
+    end
+end
+
 ----------------------------
 -- Init du système
 ----------------------------
-do
+
+if memInitDone ~= 1 then -- Permet d'executer une seul fois dans toute la vie du programme
     ic.batch_write_name(hangarDoorHash, hangarDoorExterName, LT.Lock, 1)
     ic.batch_write_name(hangarDoorHash, hangarDoorInterName, LT.Lock, 0)
     ic.batch_write(flashLightHash, LT.Lock, 1)
@@ -428,6 +437,7 @@ do
     ic.batch_write(poweredVentHash, LT.Lock, 1)
     ic.batch_write(poweredVentHash, LT.On, 0)
     ic.batch_write(bpAcquiterHash, LT.Color, 0) -- Bleu
+    mem_write(0, 1)
 end
 
 
@@ -455,6 +465,19 @@ end)
 
 
 while true do
+    ----------------------------
+    -- Redemare le cancelCycle si on était dedans avant le redemarage serveur
+    ----------------------------
+    if currentState == stateCycle.cancelToExter then
+        cancelToExter()
+    elseif currentState == stateCycle.cancelToInter then
+        cancelToInter()
+    elseif currentState == stateCycle.interExterDepresurisation or currentState == stateCycle.interExterPresurisation then
+        cycleInterExter()
+    elseif currentState == stateCycle.ExterInterDepresurisation or currentState == stateCycle.ExterInterPresurisation then
+        cycleExterInter()
+    end
+
     ----------------------------
     -- Lecture des donnés
     ----------------------------
