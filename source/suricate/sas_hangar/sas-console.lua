@@ -15,14 +15,31 @@ local system = require("system")
 local scriptedScreen = require("scriptedScreen")
 
 
+----------------------------
+-- Définition des constante
+----------------------------
+
+
+-- Garde l'id de la derniere page UI active pour que serialize() puisse
+-- sauvegarder cette page et que deserialize() puisse la restaurer.
+-- La valeur "auto" represente seulement la page par defaut de ce script,
+-- utilisee avant le premier set() ou si aucune sauvegarde n'est restauree.
+-- Dans un autre script, cette valeur pourrait etre "manu" ou toute autre
+-- page initiale choisie. Elle est definie ici, avant createScreen(), car
+-- les fonctions set() crees dans createScreen() doivent toutes modifier
+-- cette meme variable.
+local currentUi = "auto"
+
 -- Déffinition des parametre de chaque écran
 local function createScreen(name)
     local surface = ss.ui.surface(name)
     return {
         -- Rend accessible la surface pour utilisation ulterieur
-        surface=surface,
+        surface = surface,
         -- Affiche l'écran
         set = function()
+            -- Retourne l'id de la page acctuel
+            currentUi = name
             ss.ui.activate(name)
         end,
         -- Retire tout les élément afficher a l'écran
@@ -38,8 +55,8 @@ end
 
 --Liste toute les page 
 local ui = {
-    accueil = createScreen("accueil"),
-    sasControl = createScreen("sasControl"),
+    manu = createScreen("manu"),
+    auto = createScreen("auto"),
     setting = createScreen("setting"),
 }
 
@@ -47,8 +64,8 @@ local ui = {
 -- Déffinition d'une résolution virtuelle
 -----------------------------------------------------
 
-ui.accueil.surface:get_resolution(460, 460)
-local size = ui.accueil.surface:size()
+ui.manu.surface:get_resolution(460, 460)
+local size = ui.manu.surface:size()
 
 -- Déffinition de la taille de l'écran virtuelle
 local w = size.w
@@ -58,10 +75,9 @@ local h = size.h
 -- Initialisation des ecran
 -----------------------------------------------------
 
-ui.accueil.clear()
-ui.sasControl.clear()
-ui.accueil.set()
-ui.sasControl.set()
+ui.manu.clear()
+ui.auto.clear()
+ui.auto.set()
 
 -----------------------------------------------------
 -- Déffinition des données
@@ -124,12 +140,12 @@ end
 --Permet l'imbriquation d'elements dans des container
 local container = {
     sasControl = {
-        menu = ui.sasControl.surface:element({
+        menu = ui.auto.surface:element({
             id = "container_menu_sasControl", type = "panel",
             rect = { unit = "px", x = 0, y = 410, w = w, h = 50 },
             style = { bg = "#00000000" }
         }),
-        run = ui.sasControl.surface:element({
+        run = ui.auto.surface:element({
             id = "container_run_sasControl", type = "panel",
             rect = { unit = "px", x = 0, y = 108, w = w, h = 215 },
             style = { bg = "#00000000" }
@@ -156,17 +172,17 @@ local subContainer = {
 --Liste tout les elements créer dans chaque écran
 local element = {
     cycleSas = {
-        background = ui.sasControl.surface:element({
+        background = ui.auto.surface:element({
             id = "background", type = "panel",
             rect = { unit = "px", x = 0, y = 0, w = w, h = h },
             style = { bg = "#000000" }
         }),
-        weatherPanel = ui.sasControl.surface:element({
+        weatherPanel = ui.auto.surface:element({
             id = "weatherPanel", type = "image",
             rect = { unit = "px", x = 0, y = 0, w = w, h = 108 },
             props = { url = url.noStorm },
         }),
-        labelNextWeatherEventTime = ui.sasControl.surface:element({
+        labelNextWeatherEventTime = ui.auto.surface:element({
             id = "labelNextWeatherEventTime_sasControl", type = "label",
             rect = { unit = "px", x = 118, y = 63, w = 210, h = 15 },
             props = { text = "" },
@@ -415,6 +431,30 @@ local function updateScreen()
         element.cycleSas.run.info.tank.gaugePressureTank:set_props({ value = actualTankPressure })
     end
 end
+
+
+-----------------------------------------------------
+-- Sauvgarde / Restauration de la dernière interface active
+-----------------------------------------------------
+
+-- Sauvgarde l'id de la dernière page utilisé
+function serialize()
+    return currentUi
+end
+
+--En Lua, dans un if, tout ce qui n’est pas nil ou false est considéré comme true.
+-- au if : si blob n'est pas un string ou si la table n'existe pas alors sa ne passe pas
+--Si la table existe sa renvoie la table et non nil ou false donc la condition ne passe pas
+
+function deserialize(blob)
+    if type(blob) ~= "string" or not ui[blob] then --ui[blob] lit la valeur de blob (ex: blob="auto" => ui.auto), ui.blob cherche la cle fixe "blob"; donc [] sert quand le nom est variable
+        print(system.log.time().."h "..system.log.level("warn").." : Echec de la Reconstruction des donnés blob n'est pas de type string")
+        return
+    end
+    currentUi = blob
+    ui[blob].set()
+end
+
 
 
 -----------------------------------------------------

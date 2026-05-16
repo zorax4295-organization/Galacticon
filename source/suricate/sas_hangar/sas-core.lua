@@ -418,7 +418,7 @@ end
 -- Reconstruction des donnés
 function deserialize(blob)
     if type(blob) ~= "string" then
-        print(system.log.time().."h "..system.log.level("info").." : Echec de la Reconstruction des donnés blob n'est pas de type string")
+        print(system.log.time() .. "h " .. system.log.level("warn") .. " : Echec de la Reconstruction des donnés blob n'est pas de type string")
         return
     end
     local ok, data = pcall(util.json.decode, blob)
