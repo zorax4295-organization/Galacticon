@@ -14,10 +14,10 @@ local system = require("system")
 local larreDevice = 0
 local chuteImportBin = 1
 HYDROPONIC_DEVICES = { -- liste les index de station du larre pour chaque zone de plantation
-    {namePlantation="potato", stationIndexes={1,2,3,4,13,14,15,16}},
-    {namePlantation="soybean", stationIndexes={5,6,7,8,9,10,11,12}},
-    {namePlantation="tomato", stationIndexes={17,18,19,20,29,30,31,32}},
-    {namePlantation="wheat", stationIndexes={21,22,23,24,25,26,27,28}},
+    {zone=1, stationIndexes={1,2,3,4,13,14,15,16}},
+    {zone=2, stationIndexes={5,6,7,8,9,10,11,12}},
+    {zone=3, stationIndexes={17,18,19,20,29,30,31,32}},
+    {zone=4, stationIndexes={21,22,23,24,25,26,27,28}},
 }
 local states = {
     idle=1,

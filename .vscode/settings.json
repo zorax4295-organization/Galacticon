@@ -9,5 +9,8 @@
         "serialize",
         "yield",
         "tick"
+    ],
+    "Lua.workspace.library": [
+        "${workspaceFolder}/typings"
     ]
 }
